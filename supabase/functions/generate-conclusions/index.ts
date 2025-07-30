@@ -22,6 +22,8 @@ serve(async (req) => {
 
     const { assessmentId } = await req.json();
     
+    console.log('Received request for assessment:', assessmentId);
+    
     if (!assessmentId) {
       throw new Error('ID du bilan requis');
     }
@@ -32,7 +34,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    console.log('Supabase client initialized');
+
     // Fetch assessment data first
+    console.log('Fetching assessment with ID:', assessmentId);
     const { data: assessment, error: assessmentError } = await supabaseClient
       .from('assessments')
       .select(`
@@ -49,10 +54,14 @@ serve(async (req) => {
 
     if (assessmentError || !assessment) {
       console.error('Assessment error:', assessmentError);
-      throw new Error('Bilan non trouvé');
+      console.log('Assessment data:', assessment);
+      throw new Error(`Bilan non trouvé: ${assessmentError?.message || 'No data'}`);
     }
 
+    console.log('Assessment found:', assessment.id);
+
     // Fetch assessment item results separately
+    console.log('Fetching item results for assessment:', assessmentId);
     const { data: itemResults, error: resultsError } = await supabaseClient
       .from('assessment_item_results')
       .select(`
@@ -76,8 +85,10 @@ serve(async (req) => {
 
     if (resultsError) {
       console.error('Results error:', resultsError);
-      throw new Error('Erreur lors de la récupération des résultats');
+      throw new Error(`Erreur lors de la récupération des résultats: ${resultsError.message}`);
     }
+
+    console.log('Found', itemResults?.length || 0, 'item results');
 
     if (!itemResults || itemResults.length === 0) {
       throw new Error('Aucun résultat trouvé pour ce bilan');
