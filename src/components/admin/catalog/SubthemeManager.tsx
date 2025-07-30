@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useSortableData } from '@/hooks/useSortableData';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 
 interface Theme {
   id: string;
@@ -228,6 +230,9 @@ const SubthemeManager = () => {
     setSelectedThemeId('');
   };
 
+  // Use sortable data
+  const { items: sortedSubthemes, requestSort, sortConfig } = useSortableData(subthemes, { key: 'order_index', direction: 'asc' });
+
   if (isLoading) {
     return <div>Chargement...</div>;
   }
@@ -301,16 +306,24 @@ const SubthemeManager = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Ordre</TableHead>
-              <TableHead>Nom</TableHead>
-              <TableHead>Thème parent</TableHead>
-              <TableHead>Date de création</TableHead>
+              <SortableTableHead sortKey="order_index" onSort={requestSort} sortConfig={sortConfig}>
+                Ordre
+              </SortableTableHead>
+              <SortableTableHead sortKey="name" onSort={requestSort} sortConfig={sortConfig}>
+                Nom
+              </SortableTableHead>
+              <SortableTableHead sortKey="catalog_themes.name" onSort={requestSort} sortConfig={sortConfig}>
+                Thème parent
+              </SortableTableHead>
+              <SortableTableHead sortKey="created_at" onSort={requestSort} sortConfig={sortConfig}>
+                Date de création
+              </SortableTableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {subthemes?.map((subtheme) => {
-              const sameThemeSubthemes = subthemes.filter(s => s.theme_id === subtheme.theme_id);
+            {sortedSubthemes?.map((subtheme) => {
+              const sameThemeSubthemes = sortedSubthemes.filter(s => s.theme_id === subtheme.theme_id);
               const indexInTheme = sameThemeSubthemes.findIndex(s => s.id === subtheme.id);
               
               return (

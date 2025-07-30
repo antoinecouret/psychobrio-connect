@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useSortableData } from '@/hooks/useSortableData';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 
 interface Subtheme {
   id: string;
@@ -257,6 +259,9 @@ const ItemManager = () => {
     });
   };
 
+  // Use sortable data
+  const { items: sortedItems, requestSort, sortConfig } = useSortableData(items, { key: 'created_at', direction: 'desc' });
+
   if (isLoading) {
     return <div>Chargement...</div>;
   }
@@ -374,16 +379,26 @@ const ItemManager = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Nom</TableHead>
-              <TableHead>Sous-thème</TableHead>
-              <TableHead>Unité</TableHead>
-              <TableHead>Direction</TableHead>
+              <SortableTableHead sortKey="code" onSort={requestSort} sortConfig={sortConfig}>
+                Code
+              </SortableTableHead>
+              <SortableTableHead sortKey="name" onSort={requestSort} sortConfig={sortConfig}>
+                Nom
+              </SortableTableHead>
+              <SortableTableHead sortKey="catalog_subthemes.name" onSort={requestSort} sortConfig={sortConfig}>
+                Sous-thème
+              </SortableTableHead>
+              <SortableTableHead sortKey="unit" onSort={requestSort} sortConfig={sortConfig}>
+                Unité
+              </SortableTableHead>
+              <SortableTableHead sortKey="direction" onSort={requestSort} sortConfig={sortConfig}>
+                Direction
+              </SortableTableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items?.map((item) => (
+            {sortedItems?.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
                   <Badge variant="outline">{item.code}</Badge>

@@ -10,6 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useSortableData } from '@/hooks/useSortableData';
+import { SortableTableHead } from '@/components/ui/sortable-table-head';
 
 interface Theme {
   id: string;
@@ -184,6 +186,9 @@ const ThemeManager = () => {
     setThemeName('');
   };
 
+  // Use sortable data
+  const { items: sortedThemes, requestSort, sortConfig } = useSortableData(themes, { key: 'order_index', direction: 'asc' });
+
   if (isLoading) {
     return <div>Chargement...</div>;
   }
@@ -242,14 +247,20 @@ const ThemeManager = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Ordre</TableHead>
-              <TableHead>Nom</TableHead>
-              <TableHead>Date de création</TableHead>
+              <SortableTableHead sortKey="order_index" onSort={requestSort} sortConfig={sortConfig}>
+                Ordre
+              </SortableTableHead>
+              <SortableTableHead sortKey="name" onSort={requestSort} sortConfig={sortConfig}>
+                Nom
+              </SortableTableHead>
+              <SortableTableHead sortKey="created_at" onSort={requestSort} sortConfig={sortConfig}>
+                Date de création
+              </SortableTableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {themes?.map((theme, index) => (
+            {sortedThemes?.map((theme, index) => (
               <TableRow key={theme.id}>
                 <TableCell>
                   <div className="flex items-center space-x-2">
@@ -268,7 +279,7 @@ const ThemeManager = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleMoveTheme(theme, 'down')}
-                        disabled={index === themes.length - 1}
+                        disabled={index === sortedThemes.length - 1}
                         className="h-6 w-6 p-0"
                       >
                         <ArrowDown className="h-3 w-3" />
