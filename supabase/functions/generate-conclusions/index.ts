@@ -32,7 +32,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch assessment data with results
+    // Fetch assessment data first
     const { data: assessment, error: assessmentError } = await supabaseClient
       .from('assessments')
       .select(`
@@ -42,34 +42,49 @@ serve(async (req) => {
           last_name,
           birth_date,
           sex
-        ),
-        assessment_item_results (
-          *,
-          catalog_items (
-            name,
-            code,
-            description,
-            unit,
-            direction,
-            catalog_subthemes (
-              name,
-              catalog_themes (
-                id,
-                name
-              )
-            )
-          )
         )
       `)
       .eq('id', assessmentId)
       .single();
 
     if (assessmentError || !assessment) {
+      console.error('Assessment error:', assessmentError);
       throw new Error('Bilan non trouvé');
     }
 
+    // Fetch assessment item results separately
+    const { data: itemResults, error: resultsError } = await supabaseClient
+      .from('assessment_item_results')
+      .select(`
+        *,
+        catalog_items (
+          name,
+          code,
+          description,
+          unit,
+          direction,
+          catalog_subthemes (
+            name,
+            catalog_themes (
+              id,
+              name
+            )
+          )
+        )
+      `)
+      .eq('assessment_id', assessmentId);
+
+    if (resultsError) {
+      console.error('Results error:', resultsError);
+      throw new Error('Erreur lors de la récupération des résultats');
+    }
+
+    if (!itemResults || itemResults.length === 0) {
+      throw new Error('Aucun résultat trouvé pour ce bilan');
+    }
+
     // Group results by theme
-    const themeGroups = assessment.assessment_item_results.reduce((acc: any, result: any) => {
+    const themeGroups = itemResults.reduce((acc: any, result: any) => {
       const theme = result.catalog_items.catalog_subthemes.catalog_themes;
       const themeId = theme.id;
       const themeName = theme.name;
