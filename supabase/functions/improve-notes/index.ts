@@ -84,7 +84,6 @@ Réponds uniquement avec le texte amélioré, sans introduction ni explication.`
     });
 
     console.log('OpenAI response status:', response.status);
-    console.log('OpenAI response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
