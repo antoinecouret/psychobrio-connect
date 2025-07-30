@@ -192,6 +192,10 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
   // Save conclusions mutation
   const saveConclusionsMutation = useMutation({
     mutationFn: async () => {
+      console.log('Starting save process...');
+      console.log('Theme conclusions to save:', editedThemeConclusions);
+      console.log('Assessment conclusion to save:', editedAssessmentConclusion);
+
       // Save theme conclusions
       const themeInserts = [];
       const themeUpdates = [];
@@ -201,46 +205,62 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
 
         const existing = themeConclusions?.find(tc => tc.theme_id === themeId);
         if (existing) {
-          themeUpdates.push({
-            id: existing.id,
-            text: text.trim()
-          });
+          // Update existing conclusion
+          const { error } = await supabase
+            .from('theme_conclusions')
+            .update({ text: text.trim() })
+            .eq('assessment_id', assessmentId)
+            .eq('theme_id', themeId);
+          
+          if (error) {
+            console.error('Error updating theme conclusion:', error);
+            throw error;
+          }
+          console.log('Updated theme conclusion for theme:', themeId);
         } else {
-          themeInserts.push({
-            assessment_id: assessmentId,
-            theme_id: themeId,
-            text: text.trim()
-          });
+          // Insert new conclusion
+          const { error } = await supabase
+            .from('theme_conclusions')
+            .insert({
+              assessment_id: assessmentId,
+              theme_id: themeId,
+              text: text.trim()
+            });
+          
+          if (error) {
+            console.error('Error inserting theme conclusion:', error);
+            throw error;
+          }
+          console.log('Inserted new theme conclusion for theme:', themeId);
         }
       }
 
-      if (themeInserts.length > 0) {
-        const { error: insertError } = await supabase
-          .from('theme_conclusions')
-          .insert(themeInserts);
-        if (insertError) throw insertError;
-      }
-
-      if (themeUpdates.length > 0) {
-        const { error: updateError } = await supabase
-          .from('theme_conclusions')
-          .upsert(themeUpdates);
-        if (updateError) throw updateError;
-      }
-
       // Save assessment conclusion
-      if (editedAssessmentConclusion.synthesis.trim()) {
+      if (editedAssessmentConclusion.synthesis.trim() || 
+          editedAssessmentConclusion.objectives.trim() || 
+          editedAssessmentConclusion.recommendations.trim()) {
+        
+        const conclusionData = {
+          assessment_id: assessmentId,
+          synthesis: editedAssessmentConclusion.synthesis.trim(),
+          objectives: editedAssessmentConclusion.objectives.trim(),
+          recommendations: editedAssessmentConclusion.recommendations.trim(),
+          llm_model: editedAssessmentConclusion.llm_model || null
+        };
+
+        console.log('Saving assessment conclusion:', conclusionData);
+
         const { error } = await supabase
           .from('assessment_conclusions')
-          .upsert({
-            assessment_id: assessmentId,
-            synthesis: editedAssessmentConclusion.synthesis,
-            objectives: editedAssessmentConclusion.objectives,
-            recommendations: editedAssessmentConclusion.recommendations,
-            llm_model: editedAssessmentConclusion.llm_model
+          .upsert(conclusionData, {
+            onConflict: 'assessment_id'
           });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error saving assessment conclusion:', error);
+          throw error;
+        }
+        console.log('Assessment conclusion saved successfully');
       }
     },
     onSuccess: () => {
@@ -252,12 +272,12 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
       queryClient.invalidateQueries({ queryKey: ['assessment-conclusion', assessmentId] });
     },
     onError: (error) => {
+      console.error('Save error:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder les conclusions.",
+        description: `Impossible de sauvegarder les conclusions: ${error.message}`,
         variant: "destructive",
       });
-      console.error('Error saving conclusions:', error);
     }
   });
 
