@@ -28,8 +28,10 @@ serve(async (req) => {
 
   try {
     const { text, itemName, itemCode } = await req.json();
+    console.log('Request received:', { text: text?.length, itemName, itemCode });
 
     if (!text || !itemName) {
+      console.log('Missing required fields:', { hasText: !!text, hasItemName: !!itemName });
       return new Response(
         JSON.stringify({ error: 'Text and item name are required' }),
         {
@@ -38,6 +40,10 @@ serve(async (req) => {
         }
       );
     }
+
+    console.log('Making OpenAI API call...');
+    console.log('API Key present:', !!openAIApiKey);
+    console.log('API Key first 10 chars:', openAIApiKey?.substring(0, 10));
 
     const prompt = `Tu es un psychomotricien expérimenté. Je vais te donner des notes d'observation pour un item d'évaluation psychomotrice.
 
