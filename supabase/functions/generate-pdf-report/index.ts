@@ -350,8 +350,8 @@ serve(async (req) => {
     <div class="section">
         <h2 class="section-title">RÉCAPITULATIF PAR THÈME</h2>
         
-        ${sortedThemes.map((theme: any) => {
-          const themeConclusion = themeConclusions?.find(tc => tc.catalog_themes?.name === theme.name);
+        ${themes?.map((theme: any) => {
+          const themeConclusion = themeConclusions?.find(tc => tc.theme_id === theme.id);
           
           return `
           <div class="theme-section">
