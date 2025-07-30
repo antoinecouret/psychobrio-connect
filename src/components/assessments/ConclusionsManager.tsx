@@ -131,9 +131,13 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
         }));
       }
 
+      const message = data.isEmbedding 
+        ? "L'embedding a été préparé et affiché dans la zone de texte."
+        : "La conclusion du thème a été générée avec l'IA.";
+
       toast({
         title: "Succès",
-        description: "La conclusion du thème a été générée avec l'IA.",
+        description: message,
       });
     },
     onError: (error) => {
@@ -303,7 +307,7 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
                     variant="outline"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    {generateThemeConclusionMutation.isPending ? 'Génération...' : 'Générer avec IA'}
+                    {generateThemeConclusionMutation.isPending ? "Préparation..." : "Voir embedding"}
                   </Button>
                 </div>
                 <Textarea
@@ -311,8 +315,8 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
                   value={editedThemeConclusions[theme.id] || ''}
                   onChange={(e) => updateThemeConclusion(theme.id, e.target.value)}
                   placeholder={`Conclusion pour le thème ${theme.name}...`}
-                  rows={4}
-                  className="mt-2"
+                  rows={8}
+                  className="mt-2 font-mono text-sm"
                 />
                 {index < themes.length - 1 && <Separator className="mt-6" />}
               </div>

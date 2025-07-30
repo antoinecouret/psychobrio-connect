@@ -151,9 +151,9 @@ serve(async (req) => {
     const years = Math.floor(ageInMonths / 12);
     const months = ageInMonths % 12;
 
-    // If specific theme requested, generate only for that theme
+    // If specific theme requested, prepare the embedding for that theme
     if (themeId) {
-      console.log('Generating conclusion for specific theme:', themeId);
+      console.log('Preparing embedding for specific theme:', themeId);
       
       const themeData = themeGroups[themeId];
       if (!themeData) {
@@ -174,7 +174,20 @@ serve(async (req) => {
         })
         .join('\n\n');
 
-      const fullPrompt = `Tu es un psychomotricien expert. Génère une conclusion clinique pour le thème "${themeData.name}".
+      const embeddingText = `=== DONNÉES PRÉPARÉES POUR L'IA ===
+
+PATIENT: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
+
+THÈME ÉVALUÉ: ${themeData.name}
+NOMBRE DE TESTS: ${themeData.results.length}
+
+RÉSULTATS DÉTAILLÉS:
+${allResultsText}
+
+=== FIN DES DONNÉES ===
+
+PROMPT QUI SERAIT ENVOYÉ À L'IA:
+"Tu es un psychomotricien expert. Génère une conclusion clinique pour le thème "${themeData.name}".
 
 PATIENT: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
 
@@ -190,44 +203,16 @@ MISSION: Rédige une conclusion clinique professionnelle de 120-180 mots qui:
 - Propose une interprétation clinique appropriée
 - Utilise un langage professionnel adapté à un rapport psychomoteur
 
-Conclusion pour ${themeData.name}:`;
+Conclusion pour ${themeData.name}:"`;
 
-      console.log('Sending prompt to OpenAI for theme:', themeData.name);
-      console.log('Prompt preview:', fullPrompt.substring(0, 300) + '...');
-      
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { 
-              role: 'system', 
-              content: 'Tu es un psychomotricien expert spécialisé dans la rédaction de bilans psychomoteurs. Tes conclusions sont toujours professionnelles, structurées et basées sur les données cliniques.' 
-            },
-            { role: 'user', content: fullPrompt }
-          ],
-          temperature: 0.3,
-          max_tokens: 350
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erreur OpenAI: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const conclusion = data.choices[0].message.content;
-
-      console.log('Generated conclusion for theme:', themeData.name);
+      console.log('Embedding prepared for theme:', themeData.name);
+      console.log('Embedding length:', embeddingText.length);
 
       return new Response(JSON.stringify({ 
-        conclusion,
+        conclusion: embeddingText,
         themeId,
-        themeName: themeData.name
+        themeName: themeData.name,
+        isEmbedding: true
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
