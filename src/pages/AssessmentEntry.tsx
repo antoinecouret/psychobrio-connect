@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,7 @@ import { ArrowLeft, Save, FileText, Sparkles, Brain, Download } from "lucide-rea
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import ConclusionsManager from "@/components/assessments/ConclusionsManager";
+import ConclusionsManager, { ConclusionsManagerRef } from "@/components/assessments/ConclusionsManager";
 
 interface AssessmentItemResult {
   id?: string;
@@ -51,6 +51,9 @@ export default function AssessmentEntry() {
   
   const [results, setResults] = useState<Record<string, AssessmentItemResult>>({});
   const [improvingNotes, setImprovingNotes] = useState<Record<string, boolean>>({});
+  
+  // Reference to ConclusionsManager to call save function
+  const conclusionsManagerRef = useRef<ConclusionsManagerRef>(null);
 
   // Early return if no ID
   if (!id) {
@@ -671,13 +674,21 @@ export default function AssessmentEntry() {
 
       {/* Conclusions Section */}
       <div>
-        <ConclusionsManager assessmentId={id!} />
+        <ConclusionsManager ref={conclusionsManagerRef} assessmentId={id!} />
       </div>
 
       {/* Action Buttons */}
       <div className="flex justify-between items-center py-6">
         <div />
         <div className="flex gap-3">
+          <Button 
+            variant="outline"
+            onClick={() => conclusionsManagerRef.current?.saveConclusions()}
+            disabled={!conclusionsManagerRef.current}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Sauvegarder conclusions
+          </Button>
           <Button 
             variant="outline"
             onClick={handleGeneratePdf}

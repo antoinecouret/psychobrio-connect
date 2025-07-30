@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,11 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ConclusionsManagerProps {
   assessmentId: string;
+}
+
+// Expose methods for parent component
+export interface ConclusionsManagerRef {
+  saveConclusions: () => void;
 }
 
 interface ThemeConclusion {
@@ -27,7 +32,7 @@ interface AssessmentConclusion {
   llm_model?: string;
 }
 
-const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId }) => {
+const ConclusionsManager = forwardRef<ConclusionsManagerRef, ConclusionsManagerProps>(({ assessmentId }, ref) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -446,6 +451,11 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
     generatePdfMutation.mutate();
   };
 
+  // Expose the save function to parent component
+  useImperativeHandle(ref, () => ({
+    saveConclusions: handleSaveConclusions,
+  }));
+
   const updateThemeConclusion = (themeId: string, text: string) => {
     setEditedThemeConclusions(prev => ({
       ...prev,
@@ -646,6 +656,8 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
       </Card>
     </div>
   );
-};
+});
+
+ConclusionsManager.displayName = 'ConclusionsManager';
 
 export default ConclusionsManager;
