@@ -103,43 +103,65 @@ serve(async (req) => {
       throw new Error(`Aucun résultat trouvé pour le bilan ${assessmentId}`);
     }
 
-    // Group results by theme more systematically
-    console.log('Grouping results by theme...');
-    const themeGroups = itemResults.reduce((acc: any, result: any) => {
-      const theme = result.catalog_items?.catalog_subthemes?.catalog_themes;
+    // Group results by theme more systematically with detailed logging
+    console.log('Starting to group results by theme...');
+    console.log('Raw itemResults:', JSON.stringify(itemResults, null, 2));
+    
+    const themeGroups: Record<string, any> = {};
+    
+    itemResults.forEach((result, index) => {
+      console.log(`Processing result ${index + 1}:`, JSON.stringify(result, null, 2));
+      
+      const catalogItem = result.catalog_items;
+      if (!catalogItem) {
+        console.warn(`Result ${index + 1} has no catalog_items:`, result);
+        return;
+      }
+      
+      const subtheme = catalogItem.catalog_subthemes;
+      if (!subtheme) {
+        console.warn(`Result ${index + 1} has no catalog_subthemes:`, catalogItem);
+        return;
+      }
+      
+      const theme = subtheme.catalog_themes;
       if (!theme) {
-        console.warn('Missing theme for result:', result.id);
-        return acc;
+        console.warn(`Result ${index + 1} has no catalog_themes:`, subtheme);
+        return;
       }
       
       const themeId = theme.id;
       const themeName = theme.name;
       
-      if (!acc[themeId]) {
-        acc[themeId] = {
+      console.log(`Found theme for result ${index + 1}: ${themeName} (${themeId})`);
+      
+      if (!themeGroups[themeId]) {
+        themeGroups[themeId] = {
           id: themeId,
           name: themeName,
           results: []
         };
+        console.log(`Created new theme group: ${themeName}`);
       }
       
-      acc[themeId].results.push({
-        itemName: result.catalog_items.name,
-        itemCode: result.catalog_items.code,
+      const resultData = {
+        itemName: catalogItem.name,
+        itemCode: catalogItem.code,
         rawScore: result.raw_score,
         percentile: result.percentile,
         standardScore: result.standard_score,
         notes: result.notes,
-        direction: result.catalog_items.direction,
-        unit: result.catalog_items.unit,
-        subtheme: result.catalog_items.catalog_subthemes.name
-      });
+        direction: catalogItem.direction,
+        unit: catalogItem.unit,
+        subtheme: subtheme.name
+      };
       
-      return acc;
-    }, {});
+      themeGroups[themeId].results.push(resultData);
+      console.log(`Added result to theme ${themeName}:`, resultData);
+    });
 
-    console.log('Theme groups created:', Object.keys(themeGroups).length);
-    for (const [themeId, themeData] of Object.entries(themeGroups) as [string, any][]) {
+    console.log('Final theme groups:', Object.keys(themeGroups).length);
+    for (const [themeId, themeData] of Object.entries(themeGroups)) {
       console.log(`Theme ${themeData.name}: ${themeData.results.length} results`);
     }
 
