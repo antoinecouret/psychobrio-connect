@@ -284,15 +284,22 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
           editedAssessmentConclusion.objectives.trim() || 
           editedAssessmentConclusion.recommendations.trim()) {
         
+        // First, fetch current data to preserve existing fields
+        const { data: currentData } = await supabase
+          .from('assessment_conclusions')
+          .select('*')
+          .eq('assessment_id', assessmentId)
+          .maybeSingle();
+        
         const conclusionData = {
           assessment_id: assessmentId,
-          synthesis: editedAssessmentConclusion.synthesis.trim(),
-          objectives: editedAssessmentConclusion.objectives.trim(),
-          recommendations: editedAssessmentConclusion.recommendations.trim(),
-          llm_model: editedAssessmentConclusion.llm_model || null
+          synthesis: editedAssessmentConclusion.synthesis.trim() || currentData?.synthesis || '',
+          objectives: editedAssessmentConclusion.objectives.trim() || currentData?.objectives || '',
+          recommendations: editedAssessmentConclusion.recommendations.trim() || currentData?.recommendations || '',
+          llm_model: editedAssessmentConclusion.llm_model || currentData?.llm_model || null
         };
 
-        console.log('Saving assessment conclusion:', conclusionData);
+        console.log('Manual save - assessment conclusion data:', conclusionData);
 
         const { error } = await supabase
           .from('assessment_conclusions')
