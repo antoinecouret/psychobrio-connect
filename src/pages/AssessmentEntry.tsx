@@ -655,10 +655,14 @@ export default function AssessmentEntry() {
       })}
       </div>
 
-      {/* Conclusions Section - Only shown for completed assessments */}
-      {(assessment.status === 'READY_FOR_REVIEW' || assessment.status === 'SIGNED' || assessment.status === 'SHARED') && (
+      {/* Conclusions Section - Debug: Always show for now */}
+      <div>
+        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded">
+          <p><strong>Debug:</strong> Statut de l'évaluation: {assessment.status}</p>
+          <p>Section conclusions affichée pour tests</p>
+        </div>
         <ConclusionsManager assessmentId={id!} />
-      )}
+      </div>
 
       {/* Action Buttons */}
       <div className="flex justify-between items-center py-6">
