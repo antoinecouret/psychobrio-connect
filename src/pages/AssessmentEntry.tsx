@@ -265,8 +265,23 @@ export default function AssessmentEntry() {
         }
       });
 
+      // Gérer les erreurs de la fonction edge
       if (response.error) {
-        throw new Error(response.error.message);
+        let errorMessage = "Impossible d'améliorer les notes avec l'IA.";
+        
+        // Si on a une réponse de données avec un message d'erreur spécifique
+        if (response.data?.error) {
+          errorMessage = response.data.error;
+        } else if (response.error.message) {
+          errorMessage = response.error.message;
+        }
+        
+        toast({
+          title: "Erreur",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
       }
 
       if (response.data?.improvedText) {
@@ -276,15 +291,23 @@ export default function AssessmentEntry() {
           description: "Les notes ont été améliorées avec l'IA.",
         });
       } else if (response.data?.error) {
-        throw new Error(response.data.error);
+        toast({
+          title: "Erreur",
+          description: response.data.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Aucune amélioration reçue de l'IA.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error improving notes:', error);
       toast({
         title: "Erreur",
-        description: error instanceof Error 
-          ? error.message 
-          : "Impossible d'améliorer les notes avec l'IA.",
+        description: "Une erreur inattendue s'est produite.",
         variant: "destructive",
       });
     } finally {

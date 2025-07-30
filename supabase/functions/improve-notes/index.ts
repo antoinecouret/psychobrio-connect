@@ -76,12 +76,31 @@ Réponds uniquement avec le texte amélioré, sans introduction ni explication.`
     if (!response.ok) {
       const error = await response.text();
       console.error('OpenAI API error:', error);
+      
+      let errorMessage = 'Failed to improve text with AI';
+      let statusCode = 500;
+      
+      try {
+        const errorData = JSON.parse(error);
+        if (errorData.error?.code === 'insufficient_quota') {
+          errorMessage = 'Quota OpenAI dépassé. Veuillez vérifier votre abonnement OpenAI.';
+          statusCode = 429;
+        } else if (errorData.error?.code === 'invalid_api_key') {
+          errorMessage = 'Clé API OpenAI invalide. Veuillez vérifier votre configuration.';
+          statusCode = 401;
+        } else if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        }
+      } catch (parseError) {
+        console.error('Error parsing OpenAI error response:', parseError);
+      }
+      
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to improve text with AI' 
+          error: errorMessage
         }),
         {
-          status: 500,
+          status: statusCode,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
