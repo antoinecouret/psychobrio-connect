@@ -13,6 +13,7 @@ import {
   Clipboard
 } from 'lucide-react';
 import CreateUserDialog from '@/components/admin/CreateUserDialog';
+import CatalogManager from '@/components/admin/catalog/CatalogManager';
 
 const Admin = () => {
   return (
