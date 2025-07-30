@@ -439,18 +439,7 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
   };
 
   const handleSaveConclusions = () => {
-    console.log('=== SAVE BUTTON CLICKED ===');
-    console.log('Current editedThemeConclusions:', editedThemeConclusions);
-    console.log('Current editedAssessmentConclusion:', editedAssessmentConclusion);
-    console.log('Assessment ID:', assessmentId);
-    
-    try {
-      console.log('About to call saveConclusionsMutation.mutate()...');
-      saveConclusionsMutation.mutate();
-      console.log('Mutation called successfully');
-    } catch (error) {
-      console.error('Error calling mutation:', error);
-    }
+    saveConclusionsMutation.mutate();
   };
 
   const handleGeneratePdf = () => {
@@ -486,16 +475,6 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
 
   return (
     <div className="space-y-6">
-      {/* Debug info */}
-      <div className="p-4 bg-blue-100 border border-blue-400 rounded">
-        <h3><strong>Debug ConclusionsManager:</strong></h3>
-        <p>Assessment ID: {assessmentId}</p>
-        <p>Themes count: {themes?.length || 0}</p>
-        <p>Theme conclusions count: {themeConclusions?.length || 0}</p>
-        <p>Assessment conclusion exists: {assessmentConclusion ? 'Yes' : 'No'}</p>
-        <p>editedThemeConclusions keys: {Object.keys(editedThemeConclusions).join(', ')}</p>
-      </div>
-
       {/* Header with generate button */}
       <Card>
         <CardHeader>
@@ -507,10 +486,7 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={() => {
-                  console.log('=== BUTTON CLICKED - NEW DEBUG ===');
-                  handleSaveConclusions();
-                }}
+                onClick={handleSaveConclusions}
                 disabled={saveConclusionsMutation.isPending}
                 size="sm"
               >

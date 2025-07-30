@@ -357,16 +357,7 @@ export default function AssessmentEntry() {
         ...((!result.id && id) && { assessment_id: id })
       }));
     
-    console.log('Results prepared for save:', resultsToSave);
-    console.log('=== SAVING FROM BOTTOM BUTTON ===');
     saveResultsMutation.mutate(resultsToSave);
-    
-    // Also trigger save of conclusions if the ConclusionsManager is visible
-    if (assessment?.status === 'READY_FOR_REVIEW' || assessment?.status === 'SIGNED' || assessment?.status === 'SHARED') {
-      console.log('Also triggering conclusions save from bottom button');
-      // We need to trigger the conclusions save as well
-      // This requires accessing the ConclusionsManager's save function
-    }
   };
 
   const handleComplete = () => {
@@ -663,29 +654,30 @@ export default function AssessmentEntry() {
       })}
       </div>
 
-      {/* Conclusions Section - Debug: Always show for now */}
-      <div>
-        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded">
-          <p><strong>Debug:</strong> Statut de l'évaluation: {assessment.status}</p>
-          <p>Section conclusions affichée pour tests</p>
+      {/* Save Button - Positioned before conclusions */}
+      <div className="flex justify-between items-center py-4 border-t">
+        <div className="text-sm text-muted-foreground">
+          * Les scores bruts sont obligatoires
         </div>
+        <Button 
+          variant="outline" 
+          onClick={handleSave}
+          disabled={saveResultsMutation.isPending}
+        >
+          <Save className="h-4 w-4 mr-2" />
+          Sauvegarder les résultats
+        </Button>
+      </div>
+
+      {/* Conclusions Section */}
+      <div>
         <ConclusionsManager assessmentId={id!} />
       </div>
 
       {/* Action Buttons */}
       <div className="flex justify-between items-center py-6">
-        <div className="text-sm text-muted-foreground">
-          * Les scores bruts sont obligatoires
-        </div>
+        <div />
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            onClick={handleSave}
-            disabled={saveResultsMutation.isPending}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Sauvegarder
-          </Button>
           <Button 
             variant="outline"
             onClick={handleGeneratePdf}
