@@ -512,7 +512,7 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
           </CardHeader>
           <CardContent className="space-y-6">
             {themes.map((theme, index) => (
-              <div key={theme.id}>
+              <div key={theme.id} className={`p-4 rounded-lg theme-border-${index % 10}`}>
                 <div className="flex items-center justify-between mb-2">
                   <Label htmlFor={`theme-${theme.id}`} className="text-base font-medium">
                     {theme.name}

@@ -544,11 +544,11 @@ export default function AssessmentEntry() {
 
       {/* Assessment Items */}
       <div className="space-y-6">
-        {Object.entries(groupedItems).map(([themeName, subthemes]) => (
-          <Card key={themeName}>
-            <CardHeader>
-              <CardTitle className="text-xl">{themeName}</CardTitle>
-            </CardHeader>
+      {Object.entries(groupedItems).map(([themeName, subthemes], themeIndex) => (
+        <Card key={themeName} className={`theme-border-${themeIndex % 10}`}>
+          <CardHeader>
+            <CardTitle className="text-xl">{themeName}</CardTitle>
+          </CardHeader>
             <CardContent className="space-y-6">
               {Object.entries(subthemes).map(([subthemeName, items]) => (
                 <div key={subthemeName}>

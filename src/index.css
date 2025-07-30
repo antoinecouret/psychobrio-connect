@@ -38,6 +38,28 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Theme colors for assessment cards */
+    --theme-color-0: 214 100% 59%; /* Blue */
+    --theme-color-0-bg: 214 100% 97%;
+    --theme-color-1: 158 64% 52%; /* Green */
+    --theme-color-1-bg: 158 64% 97%;
+    --theme-color-2: 32 95% 44%; /* Orange */
+    --theme-color-2-bg: 32 95% 97%;
+    --theme-color-3: 0 84% 60%; /* Red */
+    --theme-color-3-bg: 0 84% 97%;
+    --theme-color-4: 262 83% 58%; /* Purple */
+    --theme-color-4-bg: 262 83% 97%;
+    --theme-color-5: 189 85% 41%; /* Cyan */
+    --theme-color-5-bg: 189 85% 97%;
+    --theme-color-6: 330 81% 60%; /* Pink */
+    --theme-color-6-bg: 330 81% 97%;
+    --theme-color-7: 84 81% 44%; /* Lime */
+    --theme-color-7-bg: 84 81% 97%;
+    --theme-color-8: 24 95% 53%; /* Orange Dark */
+    --theme-color-8-bg: 24 95% 97%;
+    --theme-color-9: 247 83% 58%; /* Indigo */
+    --theme-color-9-bg: 247 83% 97%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -83,6 +105,28 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Theme colors for dark mode */
+    --theme-color-0: 214 100% 59%;
+    --theme-color-0-bg: 214 100% 8%;
+    --theme-color-1: 158 64% 52%;
+    --theme-color-1-bg: 158 64% 8%;
+    --theme-color-2: 32 95% 44%;
+    --theme-color-2-bg: 32 95% 8%;
+    --theme-color-3: 0 84% 60%;
+    --theme-color-3-bg: 0 84% 8%;
+    --theme-color-4: 262 83% 58%;
+    --theme-color-4-bg: 262 83% 8%;
+    --theme-color-5: 189 85% 41%;
+    --theme-color-5-bg: 189 85% 8%;
+    --theme-color-6: 330 81% 60%;
+    --theme-color-6-bg: 330 81% 8%;
+    --theme-color-7: 84 81% 44%;
+    --theme-color-7-bg: 84 81% 8%;
+    --theme-color-8: 24 95% 53%;
+    --theme-color-8-bg: 24 95% 8%;
+    --theme-color-9: 247 83% 58%;
+    --theme-color-9-bg: 247 83% 8%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -102,4 +146,17 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+  .theme-border-0 { border-left: 6px solid hsl(var(--theme-color-0)); background: hsl(var(--theme-color-0-bg)); }
+  .theme-border-1 { border-left: 6px solid hsl(var(--theme-color-1)); background: hsl(var(--theme-color-1-bg)); }
+  .theme-border-2 { border-left: 6px solid hsl(var(--theme-color-2)); background: hsl(var(--theme-color-2-bg)); }
+  .theme-border-3 { border-left: 6px solid hsl(var(--theme-color-3)); background: hsl(var(--theme-color-3-bg)); }
+  .theme-border-4 { border-left: 6px solid hsl(var(--theme-color-4)); background: hsl(var(--theme-color-4-bg)); }
+  .theme-border-5 { border-left: 6px solid hsl(var(--theme-color-5)); background: hsl(var(--theme-color-5-bg)); }
+  .theme-border-6 { border-left: 6px solid hsl(var(--theme-color-6)); background: hsl(var(--theme-color-6-bg)); }
+  .theme-border-7 { border-left: 6px solid hsl(var(--theme-color-7)); background: hsl(var(--theme-color-7-bg)); }
+  .theme-border-8 { border-left: 6px solid hsl(var(--theme-color-8)); background: hsl(var(--theme-color-8-bg)); }
+  .theme-border-9 { border-left: 6px solid hsl(var(--theme-color-9)); background: hsl(var(--theme-color-9-bg)); }
 }
