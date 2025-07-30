@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Save, FileText } from "lucide-react";
+import { ArrowLeft, Save, FileText, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -45,6 +45,7 @@ export default function AssessmentEntry() {
   const queryClient = useQueryClient();
   
   const [results, setResults] = useState<Record<string, AssessmentItemResult>>({});
+  const [improvingNotes, setImprovingNotes] = useState<Record<string, boolean>>({});
   
   // Fetch assessment details
   const { data: assessment, isLoading: assessmentLoading } = useQuery({
@@ -241,6 +242,56 @@ export default function AssessmentEntry() {
     return `${years} ans ${remainingMonths} mois`;
   };
 
+  const handleImproveNotes = async (itemId: string, itemName: string, itemCode: string) => {
+    const currentNotes = results[itemId]?.notes || '';
+    
+    if (!currentNotes.trim()) {
+      toast({
+        title: "Attention",
+        description: "Veuillez d'abord saisir des notes avant de les améliorer.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setImprovingNotes(prev => ({ ...prev, [itemId]: true }));
+
+    try {
+      const response = await supabase.functions.invoke('improve-notes', {
+        body: {
+          text: currentNotes,
+          itemName: itemName,
+          itemCode: itemCode
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (response.data?.improvedText) {
+        handleScoreChange(itemId, 'notes', response.data.improvedText);
+        toast({
+          title: "Succès",
+          description: "Les notes ont été améliorées avec l'IA.",
+        });
+      } else if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+    } catch (error) {
+      console.error('Error improving notes:', error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error 
+          ? error.message 
+          : "Impossible d'améliorer les notes avec l'IA.",
+        variant: "destructive",
+      });
+    } finally {
+      setImprovingNotes(prev => ({ ...prev, [itemId]: false }));
+    }
+  };
+
   if (assessmentLoading || catalogLoading) {
     return (
       <div className="container mx-auto py-8">
@@ -402,7 +453,20 @@ export default function AssessmentEntry() {
                         </div>
                         
                         <div>
-                          <Label htmlFor={`notes-${item.id}`}>Notes et observations</Label>
+                          <div className="flex items-center justify-between mb-2">
+                            <Label htmlFor={`notes-${item.id}`}>Notes et observations</Label>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleImproveNotes(item.id, item.name, item.code)}
+                              disabled={improvingNotes[item.id] || !results[item.id]?.notes?.trim()}
+                              className="h-7 px-2 text-xs"
+                            >
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              {improvingNotes[item.id] ? 'Amélioration...' : 'Améliorer avec IA'}
+                            </Button>
+                          </div>
                           <Textarea
                             id={`notes-${item.id}`}
                             value={results[item.id]?.notes || ''}
