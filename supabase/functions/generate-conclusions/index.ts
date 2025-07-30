@@ -258,20 +258,8 @@ serve(async (req) => {
         })
         .join('\n\n');
 
-      const embeddingText = `=== DONNÉES PRÉPARÉES POUR L'IA ===
-
-PATIENT: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
-
-THÈME ÉVALUÉ: ${themeData.name}
-NOMBRE DE TESTS: ${themeData.results.length}
-
-RÉSULTATS DÉTAILLÉS:
-${allResultsText}
-
-=== FIN DES DONNÉES ===
-
-PROMPT QUI SERAIT ENVOYÉ À L'IA:
-"Tu es un psychomotricien expert. Génère une conclusion clinique pour le thème "${themeData.name}".
+      // Create prompt for OpenAI
+      const prompt = `Tu es un psychomotricien expert. Génère une conclusion clinique professionnelle pour le thème "${themeData.name}".
 
 PATIENT: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
 
@@ -283,20 +271,48 @@ ${allResultsText}
 
 MISSION: Rédige une conclusion clinique professionnelle de 120-180 mots qui:
 - Synthétise l'ensemble des résultats de ce thème
-- Identifie les forces et difficultés observées
+- Identifie les forces et difficultés observées  
 - Propose une interprétation clinique appropriée
 - Utilise un langage professionnel adapté à un rapport psychomoteur
 
-Conclusion pour ${themeData.name}:"`;
+Conclusion pour ${themeData.name}:`;
 
-      console.log('Embedding prepared for theme:', themeData.name);
-      console.log('Embedding length:', embeddingText.length);
+      console.log('Calling OpenAI for theme:', themeData.name);
+
+      // Call OpenAI API
+      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'Tu es un psychomotricien expert spécialisé dans la rédaction de bilans cliniques. Tes conclusions sont toujours professionnelles, précises et adaptées au profil des patients.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 500
+        }),
+      });
+
+      if (!openAIResponse.ok) {
+        const errorData = await openAIResponse.text();
+        console.error('OpenAI API error:', errorData);
+        throw new Error(`Erreur API OpenAI: ${openAIResponse.status}`);
+      }
+
+      const aiData = await openAIResponse.json();
+      const generatedConclusion = aiData.choices[0].message.content;
+
+      console.log('Generated conclusion for theme:', themeData.name);
 
       return new Response(JSON.stringify({ 
-        conclusion: embeddingText,
+        conclusion: generatedConclusion,
         themeId,
         themeName: themeData.name,
-        isEmbedding: true
+        isEmbedding: false
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

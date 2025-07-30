@@ -307,7 +307,7 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
                     variant="outline"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    {generateThemeConclusionMutation.isPending ? "Préparation..." : "Voir embedding"}
+                    {generateThemeConclusionMutation.isPending ? "Génération..." : "Générer par IA"}
                   </Button>
                 </div>
                 <Textarea
