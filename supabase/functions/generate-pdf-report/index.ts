@@ -438,6 +438,8 @@ serve(async (req) => {
                           else scoreClass = 'score-poor';
                         }
                         
+                        const notesText = result.notes && result.notes.trim() !== '' ? result.notes : '-';
+                        
                         return `
                         <tr>
                             <td>
@@ -447,8 +449,15 @@ serve(async (req) => {
                             <td>${result.rawScore}${result.unit || ''}</td>
                             <td class="${scoreClass}">${result.percentile || 'N/A'}</td>
                             <td>${result.standardScore || 'N/A'}</td>
-                            <td class="notes">${result.notes || '-'}</td>
+                            <td class="notes">${notesText}</td>
                         </tr>
+                        ${notesText !== '-' ? `
+                        <tr style="background: #f8f9fa;">
+                            <td colspan="5" style="padding: 8px 12px; font-style: italic; color: #495057; border-bottom: 1px solid #dee2e6;">
+                                <strong>Notes :</strong> ${notesText}
+                            </td>
+                        </tr>
+                        ` : ''}
                         `;
                       }).join('')}
                   </tbody>
