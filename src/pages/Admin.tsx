@@ -81,56 +81,7 @@ const Admin = () => {
         </TabsContent>
 
         <TabsContent value="catalog" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BookOpen className="h-5 w-5" />
-                <span>Catalogue des tests</span>
-              </CardTitle>
-              <CardDescription>
-                Gérer les thèmes, sous-thèmes et items de tests psychomoteurs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-bold">10</p>
-                        <p className="text-sm text-muted-foreground">Thèmes</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-bold">45</p>
-                        <p className="text-sm text-muted-foreground">Sous-thèmes</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-bold">120</p>
-                        <p className="text-sm text-muted-foreground">Items</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="mt-4 space-x-2">
-                <Button>Gérer les thèmes</Button>
-                <Button variant="outline">Gérer les sous-thèmes</Button>
-                <Button variant="outline">Gérer les items</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CatalogManager />
         </TabsContent>
 
         <TabsContent value="norms" className="space-y-4">
