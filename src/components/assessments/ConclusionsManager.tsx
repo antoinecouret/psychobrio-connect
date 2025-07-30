@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Brain, Save, Sparkles, FileText } from 'lucide-react';
+import { Brain, Save, Sparkles, FileText, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ConclusionsManagerProps {
@@ -349,6 +349,54 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
     }
   });
 
+  // Generate PDF report mutation
+  const generatePdfMutation = useMutation({
+    mutationFn: async () => {
+      const response = await supabase.functions.invoke('generate-pdf-report', {
+        body: { assessmentId }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erreur lors de la génération du PDF');
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.htmlContent) {
+        // Create a new window with the HTML content that can be printed as PDF
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(data.htmlContent);
+          printWindow.document.close();
+          
+          // Wait for content to load then trigger print dialog
+          printWindow.onload = () => {
+            setTimeout(() => {
+              printWindow.print();
+            }, 500);
+          };
+        }
+      }
+
+      toast({
+        title: "Succès",
+        description: "Le rapport PDF a été généré. Utilisez Ctrl+P pour l'imprimer ou le sauvegarder.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleGenerateThemeConclusion = (themeId: string) => {
     generateThemeConclusionMutation.mutate(themeId);
   };
@@ -359,6 +407,10 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
 
   const handleSaveConclusions = () => {
     saveConclusionsMutation.mutate();
+  };
+
+  const handleGeneratePdf = () => {
+    generatePdfMutation.mutate();
   };
 
   const updateThemeConclusion = (themeId: string, text: string) => {
@@ -399,6 +451,15 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
               Conclusions automatiques
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleGeneratePdf}
+                disabled={generatePdfMutation.isPending}
+                size="sm"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {generatePdfMutation.isPending ? "Génération..." : "Générer PDF"}
+              </Button>
               <Button
                 variant="outline"
                 onClick={handleSaveConclusions}
