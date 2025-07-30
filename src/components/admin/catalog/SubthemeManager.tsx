@@ -56,7 +56,7 @@ const SubthemeManager = () => {
         .from('catalog_subthemes')
         .select(`
           *,
-          catalog_themes!theme_id (
+          catalog_themes!catalog_subthemes_theme_id_fkey (
             id,
             name,
             order_index

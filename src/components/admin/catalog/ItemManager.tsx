@@ -66,7 +66,7 @@ const ItemManager = () => {
         .from('catalog_subthemes')
         .select(`
           *,
-          catalog_themes!theme_id (
+          catalog_themes!catalog_subthemes_theme_id_fkey (
             id,
             name
           )
@@ -86,11 +86,11 @@ const ItemManager = () => {
         .from('catalog_items')
         .select(`
           *,
-          catalog_subthemes!subtheme_id (
+          catalog_subthemes!catalog_items_subtheme_id_fkey (
             id,
             name,
             theme_id,
-            catalog_themes!theme_id (
+            catalog_themes!catalog_subthemes_theme_id_fkey (
               id,
               name
             )
