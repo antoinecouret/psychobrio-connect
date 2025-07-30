@@ -166,19 +166,63 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
 
       return { ...response.data, type };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.conclusion) {
+        // Update local state
         setEditedAssessmentConclusion(prev => ({
           ...prev,
           [data.type]: data.conclusion,
           llm_model: 'gpt-4o-mini'
         }));
-      }
 
-      toast({
-        title: "Succès",
-        description: "La conclusion a été générée avec l'IA.",
-      });
+        // Save directly to database
+        try {
+          const currentConclusion = editedAssessmentConclusion;
+          const updatedConclusion = {
+            ...currentConclusion,
+            [data.type]: data.conclusion,
+            llm_model: 'gpt-4o-mini'
+          };
+
+          const conclusionData = {
+            assessment_id: assessmentId,
+            synthesis: updatedConclusion.synthesis || '',
+            objectives: updatedConclusion.objectives || '',
+            recommendations: updatedConclusion.recommendations || '',
+            llm_model: updatedConclusion.llm_model
+          };
+
+          console.log('Auto-saving generated conclusion:', conclusionData);
+
+          const { error } = await supabase
+            .from('assessment_conclusions')
+            .upsert(conclusionData, {
+              onConflict: 'assessment_id'
+            });
+
+          if (error) {
+            console.error('Error auto-saving assessment conclusion:', error);
+            throw error;
+          }
+
+          console.log('Assessment conclusion auto-saved successfully');
+          
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['assessment-conclusion', assessmentId] });
+
+          toast({
+            title: "Succès",
+            description: "La conclusion a été générée et sauvegardée automatiquement.",
+          });
+        } catch (error) {
+          console.error('Auto-save error:', error);
+          toast({
+            title: "Attention",
+            description: "La conclusion a été générée mais pas sauvegardée. Cliquez sur Sauvegarder.",
+            variant: "destructive",
+          });
+        }
+      }
     },
     onError: (error) => {
       toast({
