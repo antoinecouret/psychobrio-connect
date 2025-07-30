@@ -443,7 +443,14 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
     console.log('Current editedThemeConclusions:', editedThemeConclusions);
     console.log('Current editedAssessmentConclusion:', editedAssessmentConclusion);
     console.log('Assessment ID:', assessmentId);
-    saveConclusionsMutation.mutate();
+    
+    try {
+      console.log('About to call saveConclusionsMutation.mutate()...');
+      saveConclusionsMutation.mutate();
+      console.log('Mutation called successfully');
+    } catch (error) {
+      console.error('Error calling mutation:', error);
+    }
   };
 
   const handleGeneratePdf = () => {
