@@ -231,7 +231,17 @@ serve(async (req) => {
       
       const themeData = themeGroups[themeId];
       if (!themeData) {
+        console.error(`Theme ${themeId} not found in themeGroups`);
+        console.error('Available themes:', Object.keys(themeGroups));
         throw new Error(`Thème ${themeId} non trouvé ou sans résultats`);
+      }
+
+      console.log(`Preparing embedding for theme: ${themeData.name} with ${themeData.results.length} results`);
+
+      // Ensure results exist and are properly structured
+      if (!themeData.results || themeData.results.length === 0) {
+        console.warn(`No results found for theme ${themeData.name}`);
+        throw new Error(`Aucun résultat trouvé pour le thème ${themeData.name}`);
       }
 
       // Concatenate all results for this theme
