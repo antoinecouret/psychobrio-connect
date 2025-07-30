@@ -315,23 +315,6 @@ export default function AssessmentEntry() {
     }
   };
 
-  const testOpenAI = async () => {
-    try {
-      const response = await supabase.functions.invoke('test-openai');
-      console.log('Test OpenAI response:', response);
-      toast({
-        title: "Test OpenAI",
-        description: JSON.stringify(response.data, null, 2),
-      });
-    } catch (error) {
-      console.error('Test error:', error);
-      toast({
-        title: "Test Error", 
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
   if (assessmentLoading || catalogLoading) {
     return (
@@ -533,13 +516,6 @@ export default function AssessmentEntry() {
           * Les scores bruts sont obligatoires
         </div>
         <div className="flex gap-3">
-          <Button 
-            variant="secondary" 
-            onClick={testOpenAI}
-            size="sm"
-          >
-            Test OpenAI
-          </Button>
           <Button 
             variant="outline" 
             onClick={handleSave}
