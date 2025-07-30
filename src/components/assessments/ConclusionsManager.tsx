@@ -439,6 +439,10 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
   };
 
   const handleSaveConclusions = () => {
+    console.log('=== SAVE BUTTON CLICKED ===');
+    console.log('Current editedThemeConclusions:', editedThemeConclusions);
+    console.log('Current editedAssessmentConclusion:', editedAssessmentConclusion);
+    console.log('Assessment ID:', assessmentId);
     saveConclusionsMutation.mutate();
   };
 
