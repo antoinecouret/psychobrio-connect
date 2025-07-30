@@ -20,9 +20,9 @@ serve(async (req) => {
       throw new Error('Clé API OpenAI non configurée');
     }
 
-    const { assessmentId } = await req.json();
+    const { assessmentId, themeId } = await req.json();
     
-    console.log('Received request for assessment:', assessmentId);
+    console.log('Received request for assessment:', assessmentId, 'theme:', themeId || 'ALL');
     
     if (!assessmentId) {
       throw new Error('ID du bilan requis');
@@ -142,12 +142,16 @@ serve(async (req) => {
     const years = Math.floor(ageInMonths / 12);
     const months = ageInMonths % 12;
 
-    // Generate conclusions for each theme with detailed concatenation
-    const themeConclusions = [];
-    for (const [themeId, themeData] of Object.entries(themeGroups) as [string, any][]) {
-      console.log(`Generating conclusion for theme: ${themeData.name} with ${themeData.results.length} results`);
+    // If specific theme requested, generate only for that theme
+    if (themeId) {
+      console.log('Generating conclusion for specific theme:', themeId);
       
-      // Concatenate all results for this theme into a single coherent text
+      const themeData = themeGroups[themeId];
+      if (!themeData) {
+        throw new Error(`Thème ${themeId} non trouvé ou sans résultats`);
+      }
+
+      // Concatenate all results for this theme
       const allResultsText = themeData.results
         .map((r: any) => {
           let line = `• ${r.itemName} (${r.itemCode})`;
@@ -179,7 +183,8 @@ MISSION: Rédige une conclusion clinique professionnelle de 120-180 mots qui:
 
 Conclusion pour ${themeData.name}:`;
 
-      console.log('Sending prompt to OpenAI:', fullPrompt.substring(0, 200) + '...');
+      console.log('Sending prompt to OpenAI for theme:', themeData.name);
+      console.log('Prompt preview:', fullPrompt.substring(0, 300) + '...');
       
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -208,76 +213,18 @@ Conclusion pour ${themeData.name}:`;
       const data = await response.json();
       const conclusion = data.choices[0].message.content;
 
-      themeConclusions.push({
+      console.log('Generated conclusion for theme:', themeData.name);
+
+      return new Response(JSON.stringify({ 
+        conclusion,
         themeId,
-        themeName: themeData.name,
-        conclusion
+        themeName: themeData.name
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    // Generate general synthesis
-    const synthesisPrompt = `Tu es un psychomotricien expert. Génère une synthèse générale et des recommandations pour ce bilan psychomoteur.
-
-Patient: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
-
-Conclusions par thème:
-${themeConclusions.map(tc => `${tc.themeName}: ${tc.conclusion}`).join('\n\n')}
-
-Génère une réponse structurée avec:
-
-SYNTHÈSE GÉNÉRALE (150-200 mots):
-Une synthèse qui intègre tous les thèmes et donne une vision d'ensemble du profil psychomoteur de l'enfant.
-
-OBJECTIFS (100-150 mots):
-Des objectifs thérapeutiques spécifiques et réalisables basés sur les résultats.
-
-RECOMMANDATIONS (100-150 mots):
-Des recommandations pratiques pour l'enfant, la famille et l'école.
-
-Utilise un format avec ces trois sections clairement identifiées.`;
-
-    const synthesisResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'Tu es un psychomotricien expert spécialisé dans la rédaction de synthèses de bilans psychomoteurs. Tes synthèses sont toujours professionnelles, structurées et orientées vers l\'action thérapeutique.' 
-          },
-          { role: 'user', content: synthesisPrompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 800
-      }),
-    });
-
-    if (!synthesisResponse.ok) {
-      throw new Error(`Erreur OpenAI pour la synthèse: ${synthesisResponse.statusText}`);
-    }
-
-    const synthesisData = await synthesisResponse.json();
-    const fullSynthesis = synthesisData.choices[0].message.content;
-
-    // Parse the synthesis to extract sections
-    const sections = fullSynthesis.split(/(?:SYNTHÈSE GÉNÉRALE|OBJECTIFS|RECOMMANDATIONS)/i);
-    const synthesis = sections[1]?.trim() || fullSynthesis;
-    const objectives = sections[2]?.trim() || '';
-    const recommendations = sections[3]?.trim() || '';
-
-    return new Response(JSON.stringify({ 
-      themeConclusions,
-      synthesis,
-      objectives,
-      recommendations,
-      model: 'gpt-4o-mini'
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // If no specific theme requested, generate for all themes (not implemented in this version)
+    throw new Error('Génération pour tous les thèmes non implémentée. Utilisez la génération par thème.');
 
   } catch (error) {
     console.error('Error in generate-conclusions function:', error);

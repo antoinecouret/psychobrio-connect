@@ -105,15 +105,15 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
     }
   }, [assessmentConclusion]);
 
-  // Generate conclusions mutation
-  const generateConclusionsMutation = useMutation({
-    mutationFn: async () => {
+  // Generate conclusions mutation for single theme
+  const generateThemeConclusionMutation = useMutation({
+    mutationFn: async (themeId: string) => {
       const response = await supabase.functions.invoke('generate-conclusions', {
-        body: { assessmentId }
+        body: { assessmentId, themeId }
       });
 
       if (response.error) {
-        throw new Error(response.error.message || 'Erreur lors de la génération des conclusions');
+        throw new Error(response.error.message || 'Erreur lors de la génération de la conclusion');
       }
 
       if (response.data?.error) {
@@ -122,29 +122,18 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
 
       return response.data;
     },
-    onSuccess: (data) => {
-      // Update theme conclusions
-      if (data.themeConclusions) {
-        const conclusionsMap: Record<string, string> = {};
-        data.themeConclusions.forEach((tc: any) => {
-          conclusionsMap[tc.themeId] = tc.conclusion;
-        });
-        setEditedThemeConclusions(conclusionsMap);
-      }
-
-      // Update assessment conclusion
-      if (data.synthesis) {
-        setEditedAssessmentConclusion({
-          synthesis: data.synthesis,
-          objectives: data.objectives || '',
-          recommendations: data.recommendations || '',
-          llm_model: data.model
-        });
+    onSuccess: (data, themeId) => {
+      // Update only the specific theme conclusion
+      if (data.conclusion) {
+        setEditedThemeConclusions(prev => ({
+          ...prev,
+          [themeId]: data.conclusion
+        }));
       }
 
       toast({
         title: "Succès",
-        description: "Les conclusions ont été générées automatiquement avec l'IA.",
+        description: "La conclusion du thème a été générée avec l'IA.",
       });
     },
     onError: (error) => {
@@ -228,10 +217,8 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
     }
   });
 
-  const handleGenerateConclusions = () => {
-    setIsGenerating(true);
-    generateConclusionsMutation.mutate();
-    setIsGenerating(false);
+  const handleGenerateThemeConclusion = (themeId: string) => {
+    generateThemeConclusionMutation.mutate(themeId);
   };
 
   const handleSaveConclusions = () => {
@@ -277,14 +264,6 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={handleGenerateConclusions}
-                disabled={isGenerating || generateConclusionsMutation.isPending}
-                size="sm"
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                {isGenerating || generateConclusionsMutation.isPending ? 'Génération...' : 'Générer avec IA'}
-              </Button>
-              <Button
                 variant="outline"
                 onClick={handleSaveConclusions}
                 disabled={saveConclusionsMutation.isPending}
@@ -313,9 +292,20 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
           <CardContent className="space-y-6">
             {themes.map((theme, index) => (
               <div key={theme.id}>
-                <Label htmlFor={`theme-${theme.id}`} className="text-base font-medium">
-                  {theme.name}
-                </Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor={`theme-${theme.id}`} className="text-base font-medium">
+                    {theme.name}
+                  </Label>
+                  <Button
+                    onClick={() => handleGenerateThemeConclusion(theme.id)}
+                    disabled={generateThemeConclusionMutation.isPending}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    {generateThemeConclusionMutation.isPending ? 'Génération...' : 'Générer avec IA'}
+                  </Button>
+                </div>
                 <Textarea
                   id={`theme-${theme.id}`}
                   value={editedThemeConclusions[theme.id] || ''}
