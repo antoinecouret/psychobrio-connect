@@ -66,7 +66,7 @@ Réponds uniquement avec le texte amélioré, sans introduction ni explication.`
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-mini-2025-04-14',
         messages: [
           { 
             role: 'system', 
@@ -78,6 +78,9 @@ Réponds uniquement avec le texte amélioré, sans introduction ni explication.`
         max_tokens: 500,
       }),
     });
+
+    console.log('OpenAI response status:', response.status);
+    console.log('OpenAI response ok:', response.ok);
 
     if (!response.ok) {
       const error = await response.text();
