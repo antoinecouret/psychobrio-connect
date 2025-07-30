@@ -132,6 +132,13 @@ export default function AssessmentEntry() {
   // Save results mutation
   const saveResultsMutation = useMutation({
     mutationFn: async (resultsToSave: AssessmentItemResult[]) => {
+      if (!id) {
+        throw new Error('ID du bilan manquant');
+      }
+
+      console.log('Saving results for assessment:', id);
+      console.log('Results to save:', resultsToSave);
+
       const updates = [];
       const inserts = [];
 
