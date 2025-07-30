@@ -353,65 +353,13 @@ serve(async (req) => {
         ${sortedThemes.map((theme: any) => {
           const themeConclusion = themeConclusions?.find(tc => tc.catalog_themes?.name === theme.name);
           
-          // Calculate theme summary stats
-          const results = theme.results;
-          const validPercentiles = results.filter((r: any) => r.percentile !== null);
-          const avgPercentile = validPercentiles.length > 0 
-            ? validPercentiles.reduce((sum: number, r: any) => sum + r.percentile, 0) / validPercentiles.length 
-            : null;
-          
-          let themeStatus = 'Non évalué';
-          let statusClass = '';
-          if (avgPercentile !== null) {
-            if (avgPercentile >= 75) {
-              themeStatus = 'Performances excellentes';
-              statusClass = 'score-good';
-            } else if (avgPercentile >= 50) {
-              themeStatus = 'Performances dans la norme';
-              statusClass = 'score-good';
-            } else if (avgPercentile >= 25) {
-              themeStatus = 'Performances faibles';
-              statusClass = 'score-concern';
-            } else {
-              themeStatus = 'Difficultés importantes';
-              statusClass = 'score-poor';
-            }
-          }
-          
           return `
           <div class="theme-section">
               <h3 class="theme-title">${theme.name}</h3>
-              <div class="info-grid">
-                  <div class="info-item">
-                      <span class="info-label">Nombre de tests :</span> ${results.length}
-                  </div>
-                  <div class="info-item">
-                      <span class="info-label">Statut global :</span> <span class="${statusClass}">${themeStatus}</span>
-                  </div>
-                  ${avgPercentile !== null ? `
-                  <div class="info-item">
-                      <span class="info-label">Percentile moyen :</span> <span class="${statusClass}">${Math.round(avgPercentile)}</span>
-                  </div>
-                  ` : ''}
-              </div>
+              
               ${themeConclusion ? `
-              <div style="margin-top: 15px;">
-                  <span class="info-label">Conclusion :</span>
-                  <div class="conclusion-text" style="margin-top: 8px;">${themeConclusion.text}</div>
-              </div>
+              <div class="conclusion-text" style="margin-bottom: 20px;">${themeConclusion.text}</div>
               ` : ''}
-          </div>
-          `;
-        }).join('')}
-    </div>
-
-    <div class="section">
-        <h2 class="section-title">RÉSULTATS PAR THÈME</h2>
-        
-        ${sortedThemes.map((theme: any) => {
-          return `
-          <div class="theme-section">
-              <h3 class="theme-title">${theme.name}</h3>
               
               <table class="results-table">
                   <thead>
