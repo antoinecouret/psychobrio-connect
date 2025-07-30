@@ -486,15 +486,6 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={handleGeneratePdf}
-                disabled={generatePdfMutation.isPending}
-                size="sm"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {generatePdfMutation.isPending ? "Génération..." : "Générer PDF"}
-              </Button>
-              <Button
-                variant="outline"
                 onClick={handleSaveConclusions}
                 disabled={saveConclusionsMutation.isPending}
                 size="sm"

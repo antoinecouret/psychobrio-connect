@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Save, FileText, Sparkles, Brain } from "lucide-react";
+import { ArrowLeft, Save, FileText, Sparkles, Brain, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -283,6 +283,54 @@ export default function AssessmentEntry() {
     }
   });
 
+  // Generate PDF report mutation
+  const generatePdfMutation = useMutation({
+    mutationFn: async () => {
+      const response = await supabase.functions.invoke('generate-pdf-report', {
+        body: { assessmentId: id }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erreur lors de la génération du PDF');
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.htmlContent) {
+        // Create a new window with the HTML content that can be printed as PDF
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(data.htmlContent);
+          printWindow.document.close();
+          
+          // Wait for content to load then trigger print dialog
+          printWindow.onload = () => {
+            setTimeout(() => {
+              printWindow.print();
+            }, 500);
+          };
+        }
+      }
+
+      toast({
+        title: "Succès",
+        description: "Le rapport PDF a été généré. Utilisez Ctrl+P pour l'imprimer ou le sauvegarder.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleScoreChange = (itemId: string, field: keyof AssessmentItemResult, value: string | number) => {
     setResults(prev => ({
       ...prev,
@@ -294,6 +342,10 @@ export default function AssessmentEntry() {
           : value
       }
     }));
+  };
+
+  const handleGeneratePdf = () => {
+    generatePdfMutation.mutate();
   };
 
   const handleSave = () => {
@@ -611,6 +663,14 @@ export default function AssessmentEntry() {
           >
             <Save className="h-4 w-4 mr-2" />
             Sauvegarder
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={handleGeneratePdf}
+            disabled={generatePdfMutation.isPending}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {generatePdfMutation.isPending ? "Génération..." : "Générer PDF"}
           </Button>
           <Button 
             onClick={handleComplete}
