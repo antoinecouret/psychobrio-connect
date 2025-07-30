@@ -38,32 +38,26 @@ const CreateUserDialog = ({ trigger }: CreateUserDialogProps) => {
 
   const createUserMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Créer l'utilisateur via Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        user_metadata: {
-          name: data.name,
-          role: data.role,
-        },
-        email_confirm: true, // Confirmer automatiquement l'email
-      });
-
-      if (authError) throw authError;
-
-      // Mettre à jour le profil avec les informations supplémentaires
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
+      // Utiliser la edge function pour créer l'utilisateur
+      const response = await supabase.functions.invoke('create-user', {
+        body: {
+          email: data.email,
+          password: data.password,
           name: data.name,
           phone: data.phone,
           role: data.role,
-        })
-        .eq('id', authData.user.id);
+        }
+      });
 
-      if (profileError) throw profileError;
+      if (response.error) {
+        throw new Error(response.error.message || 'Erreur lors de la création de l\'utilisateur');
+      }
 
-      return authData.user;
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
