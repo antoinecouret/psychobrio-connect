@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Save, FileText, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, FileText, Sparkles, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import ConclusionsManager from "@/components/assessments/ConclusionsManager";
 
 interface AssessmentItemResult {
   id?: string;
@@ -509,6 +510,11 @@ export default function AssessmentEntry() {
           </Card>
         ))}
       </div>
+
+      {/* Conclusions Section - Only shown for completed assessments */}
+      {(assessment.status === 'READY_FOR_REVIEW' || assessment.status === 'SIGNED' || assessment.status === 'SHARED') && (
+        <ConclusionsManager assessmentId={id!} />
+      )}
 
       {/* Action Buttons */}
       <div className="flex justify-between items-center py-6">
