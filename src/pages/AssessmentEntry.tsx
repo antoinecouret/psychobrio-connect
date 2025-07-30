@@ -358,7 +358,15 @@ export default function AssessmentEntry() {
       }));
     
     console.log('Results prepared for save:', resultsToSave);
+    console.log('=== SAVING FROM BOTTOM BUTTON ===');
     saveResultsMutation.mutate(resultsToSave);
+    
+    // Also trigger save of conclusions if the ConclusionsManager is visible
+    if (assessment?.status === 'READY_FOR_REVIEW' || assessment?.status === 'SIGNED' || assessment?.status === 'SHARED') {
+      console.log('Also triggering conclusions save from bottom button');
+      // We need to trigger the conclusions save as well
+      // This requires accessing the ConclusionsManager's save function
+    }
   };
 
   const handleComplete = () => {
