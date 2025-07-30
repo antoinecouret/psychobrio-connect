@@ -72,7 +72,7 @@ const CreateAssessmentDialog = ({ trigger, preselectedPatientId }: CreateAssessm
           patient_id: data.patient_id,
           practitioner_id: authUser.user.id,
           date: data.date,
-          template_id: data.template_id || null,
+          template_id: data.template_id === 'none' ? null : data.template_id || null,
           status: 'DRAFT',
         })
         .select()
@@ -177,7 +177,7 @@ const CreateAssessmentDialog = ({ trigger, preselectedPatientId }: CreateAssessm
                 <SelectValue placeholder="Sélectionner un gabarit" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucun gabarit</SelectItem>
+                <SelectItem value="none">Aucun gabarit</SelectItem>
                 {templates?.map((template) => (
                   <SelectItem key={template.id} value={template.id}>
                     {template.name} {template.is_default && '(Par défaut)'}
