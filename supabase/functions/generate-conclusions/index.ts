@@ -60,12 +60,20 @@ serve(async (req) => {
 
     console.log('Assessment found:', assessment.id);
 
-    // Fetch assessment item results separately
+    // Fetch assessment item results separately with explicit filtering
     console.log('Fetching item results for assessment:', assessmentId);
+    console.log('Assessment ID type:', typeof assessmentId);
+    
     const { data: itemResults, error: resultsError } = await supabaseClient
       .from('assessment_item_results')
       .select(`
-        *,
+        id,
+        assessment_id,
+        item_id,
+        raw_score,
+        percentile,
+        standard_score,
+        notes,
         catalog_items (
           name,
           code,
@@ -88,10 +96,11 @@ serve(async (req) => {
       throw new Error(`Erreur lors de la récupération des résultats: ${resultsError.message}`);
     }
 
-    console.log('Found', itemResults?.length || 0, 'item results');
+    console.log('Found', itemResults?.length || 0, 'item results for assessment', assessmentId);
+    console.log('Sample result:', itemResults?.[0] ? JSON.stringify(itemResults[0], null, 2) : 'No results');
 
     if (!itemResults || itemResults.length === 0) {
-      throw new Error('Aucun résultat trouvé pour ce bilan');
+      throw new Error(`Aucun résultat trouvé pour le bilan ${assessmentId}`);
     }
 
     // Group results by theme more systematically
