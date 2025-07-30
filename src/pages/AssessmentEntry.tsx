@@ -45,8 +45,27 @@ export default function AssessmentEntry() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Debug: Log the ID
+  console.log('Assessment ID from useParams:', id);
+  console.log('ID type:', typeof id);
+  
   const [results, setResults] = useState<Record<string, AssessmentItemResult>>({});
   const [improvingNotes, setImprovingNotes] = useState<Record<string, boolean>>({});
+
+  // Early return if no ID
+  if (!id) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600">Erreur</h1>
+          <p>ID du bilan manquant dans l'URL</p>
+          <Button onClick={() => navigate('/assessments')} className="mt-4">
+            Retour aux bilans
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   // Fetch assessment details
   const { data: assessment, isLoading: assessmentLoading } = useQuery({
