@@ -545,10 +545,16 @@ export default function AssessmentEntry() {
       {/* Assessment Items */}
       <div className="space-y-6">
       {Object.entries(groupedItems).map(([themeName, subthemes], themeIndex) => {
-        const colorClass = `theme-border-${themeIndex % 10}`;
-        console.log(`Theme "${themeName}" at index ${themeIndex} gets class: ${colorClass}`);
+        const colorIndex = themeIndex % 10;
+        console.log(`Theme "${themeName}" at index ${themeIndex} gets color index: ${colorIndex}`);
         return (
-          <Card key={themeName} className={colorClass}>
+          <Card 
+            key={themeName} 
+            style={{
+              borderLeft: `6px solid hsl(var(--theme-color-${colorIndex}))`,
+              background: `hsl(var(--theme-color-${colorIndex}-bg))`
+            }}
+          >
             <CardHeader>
               <CardTitle className="text-xl">{themeName}</CardTitle>
             </CardHeader>

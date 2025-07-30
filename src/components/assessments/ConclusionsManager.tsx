@@ -511,9 +511,18 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
             <CardTitle>Conclusions par thème</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {themes.map((theme, index) => (
-              <div key={theme.id} className={`p-4 rounded-lg theme-border-${index % 10}`}>
-                <div className="flex items-center justify-between mb-2">
+            {themes.map((theme, index) => {
+              const colorIndex = index % 10;
+              return (
+                <div 
+                  key={theme.id} 
+                  className="p-4 rounded-lg"
+                  style={{
+                    borderLeft: `6px solid hsl(var(--theme-color-${colorIndex}))`,
+                    background: `hsl(var(--theme-color-${colorIndex}-bg))`
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-2">
                   <Label htmlFor={`theme-${theme.id}`} className="text-base font-medium">
                     {theme.name}
                   </Label>
@@ -536,8 +545,9 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
                   className="mt-2 font-mono text-sm"
                 />
                 {index < themes.length - 1 && <Separator className="mt-6" />}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       )}
