@@ -122,23 +122,56 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
 
       return response.data;
     },
-    onSuccess: (data, themeId) => {
+    onSuccess: async (data, themeId) => {
       // Update only the specific theme conclusion
       if (data.conclusion) {
         setEditedThemeConclusions(prev => ({
           ...prev,
           [themeId]: data.conclusion
         }));
+
+        // Save automatically to database
+        try {
+          const existing = themeConclusions?.find(tc => tc.theme_id === themeId);
+          
+          if (existing) {
+            // Update existing conclusion
+            const { error } = await supabase
+              .from('theme_conclusions')
+              .update({ text: data.conclusion })
+              .eq('assessment_id', assessmentId)
+              .eq('theme_id', themeId);
+            
+            if (error) throw error;
+          } else {
+            // Insert new conclusion
+            const { error } = await supabase
+              .from('theme_conclusions')
+              .insert({
+                assessment_id: assessmentId,
+                theme_id: themeId,
+                text: data.conclusion
+              });
+            
+            if (error) throw error;
+          }
+
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['theme-conclusions', assessmentId] });
+
+          toast({
+            title: "Succès",
+            description: "La conclusion du thème a été générée et sauvegardée automatiquement.",
+          });
+        } catch (error) {
+          console.error('Auto-save error for theme conclusion:', error);
+          toast({
+            title: "Attention",
+            description: "La conclusion a été générée mais pas sauvegardée. Cliquez sur Sauvegarder.",
+            variant: "destructive",
+          });
+        }
       }
-
-      const message = data.isEmbedding 
-        ? "L'embedding a été préparé et affiché dans la zone de texte."
-        : "La conclusion du thème a été générée avec l'IA.";
-
-      toast({
-        title: "Succès",
-        description: message,
-      });
     },
     onError: (error) => {
       toast({
