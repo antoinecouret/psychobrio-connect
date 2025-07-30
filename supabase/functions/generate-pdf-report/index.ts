@@ -207,10 +207,20 @@ serve(async (req) => {
         }
         .theme-section {
             margin-bottom: 35px;
-            border: 1px solid #e9ecef;
             border-radius: 8px;
             padding: 20px;
+            border-left: 6px solid;
         }
+        .theme-color-0 { border-left-color: #3B82F6; background: #EFF6FF; }
+        .theme-color-1 { border-left-color: #10B981; background: #ECFDF5; }
+        .theme-color-2 { border-left-color: #F59E0B; background: #FFFBEB; }
+        .theme-color-3 { border-left-color: #EF4444; background: #FEF2F2; }
+        .theme-color-4 { border-left-color: #8B5CF6; background: #F5F3FF; }
+        .theme-color-5 { border-left-color: #06B6D4; background: #ECFEFF; }
+        .theme-color-6 { border-left-color: #EC4899; background: #FDF2F8; }
+        .theme-color-7 { border-left-color: #84CC16; background: #F7FEE7; }
+        .theme-color-8 { border-left-color: #F97316; background: #FFF7ED; }
+        .theme-color-9 { border-left-color: #6366F1; background: #EEF2FF; }
         .theme-title {
             color: #0066cc;
             font-size: 18px;
@@ -350,11 +360,12 @@ serve(async (req) => {
     <div class="section">
         <h2 class="section-title">RÉCAPITULATIF PAR THÈME</h2>
         
-        ${themes?.map((theme: any) => {
+        ${themes?.map((theme: any, index: number) => {
           const themeConclusion = themeConclusions?.find(tc => tc.theme_id === theme.id);
+          const colorClass = `theme-color-${index % 10}`;
           
           return `
-          <div class="theme-section">
+          <div class="theme-section ${colorClass}">
               <h3 class="theme-title">${theme.name}</h3>
               
               ${themeConclusion ? `
