@@ -119,12 +119,32 @@ export default function AssessmentEntry() {
   const { data: existingResults } = useQuery({
     queryKey: ['assessment-results', id],
     queryFn: async () => {
+      if (!id) {
+        console.error('No assessment ID provided for fetching results');
+        return [];
+      }
+
+      console.log('Fetching existing results for assessment:', id);
+      
       const { data, error } = await supabase
         .from('assessment_item_results')
-        .select('*')
+        .select(`
+          id,
+          assessment_id,
+          item_id,
+          raw_score,
+          notes,
+          percentile,
+          standard_score
+        `)
         .eq('assessment_id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching existing results:', error);
+        throw error;
+      }
+
+      console.log('Fetched existing results:', data);
       return data;
     },
     enabled: !!id
