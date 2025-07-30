@@ -247,9 +247,15 @@ export default function AssessmentEntry() {
   };
 
   const handleSave = () => {
-    const resultsToSave = Object.values(results).filter(result => 
-      result.raw_score !== undefined && result.raw_score !== 0
-    );
+    const resultsToSave = Object.values(results)
+      .filter(result => result.raw_score !== undefined && result.raw_score !== 0)
+      .map(result => ({
+        ...result,
+        // Ensure assessment_id is present for new records
+        ...((!result.id && id) && { assessment_id: id })
+      }));
+    
+    console.log('Results prepared for save:', resultsToSave);
     saveResultsMutation.mutate(resultsToSave);
   };
 
