@@ -71,25 +71,36 @@ serve(async (req) => {
       );
     }
 
-    // Update profile with additional information
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .update({
-        name,
-        phone: phone || null,
-        role,
-      })
-      .eq('id', authData.user.id);
-
-    if (profileError) {
-      console.error('Error updating profile:', profileError);
+    if (!authData.user) {
       return new Response(
-        JSON.stringify({ error: 'Utilisateur créé mais erreur lors de la mise à jour du profil' }),
+        JSON.stringify({ error: 'Échec de la création de l\'utilisateur' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
+    }
+
+    // Wait a bit for the trigger to create the profile
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Update or insert profile with additional information
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .upsert({
+        id: authData.user.id,
+        name,
+        email: authData.user.email,
+        phone: phone || null,
+        role,
+      }, {
+        onConflict: 'id'
+      });
+
+    if (profileError) {
+      console.error('Error updating profile:', profileError);
+      // Don't fail the entire operation if profile update fails
+      console.log('Profile update failed, but user was created successfully');
     }
 
     return new Response(
