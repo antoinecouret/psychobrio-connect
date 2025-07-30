@@ -182,8 +182,13 @@ export default function AssessmentEntry() {
       const inserts = [];
 
       for (const result of resultsToSave) {
+        console.log('Processing result:', result);
+        console.log('Result has id?', !!result.id);
+        console.log('Assessment ID:', id);
+        
         if (result.id) {
           // Update existing result
+          console.log('Adding to updates:', result.id);
           updates.push({
             id: result.id,
             raw_score: result.raw_score,
@@ -193,16 +198,22 @@ export default function AssessmentEntry() {
           });
         } else {
           // Insert new result
-          inserts.push({
+          console.log('Adding to inserts for item:', result.item_id);
+          const insertData = {
             assessment_id: id,
             item_id: result.item_id,
             raw_score: result.raw_score,
             notes: result.notes,
             percentile: result.percentile,
             standard_score: result.standard_score
-          });
+          };
+          console.log('Insert data:', insertData);
+          inserts.push(insertData);
         }
       }
+
+      console.log('Final updates array:', updates);
+      console.log('Final inserts array:', inserts);
 
       if (updates.length > 0) {
         const { error: updateError } = await supabase
