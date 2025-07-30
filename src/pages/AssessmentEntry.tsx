@@ -178,6 +178,25 @@ export default function AssessmentEntry() {
       console.log('Saving results for assessment:', id);
       console.log('Results to save:', resultsToSave);
 
+      // First, validate that the assessment exists
+      const { data: assessmentExists, error: validationError } = await supabase
+        .from('assessments')
+        .select('id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (validationError) {
+        console.error('Error validating assessment:', validationError);
+        throw new Error(`Erreur de validation du bilan: ${validationError.message}`);
+      }
+
+      if (!assessmentExists) {
+        console.error('Assessment not found:', id);
+        throw new Error(`Le bilan avec l'ID ${id} n'existe pas`);
+      }
+
+      console.log('Assessment validated successfully:', assessmentExists.id);
+
       const updates = [];
       const inserts = [];
 

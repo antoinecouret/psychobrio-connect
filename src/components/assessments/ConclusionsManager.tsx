@@ -152,6 +152,23 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
   // Generate assessment conclusion mutation
   const generateAssessmentConclusionMutation = useMutation({
     mutationFn: async (type: 'synthesis' | 'objectives' | 'recommendations') => {
+      // Validate assessment exists first
+      const { data: assessmentExists, error: validationError } = await supabase
+        .from('assessments')
+        .select('id')
+        .eq('id', assessmentId)
+        .maybeSingle();
+
+      if (validationError) {
+        console.error('Error validating assessment for conclusions:', validationError);
+        throw new Error(`Erreur de validation du bilan: ${validationError.message}`);
+      }
+
+      if (!assessmentExists) {
+        console.error('Assessment not found for conclusions:', assessmentId);
+        throw new Error(`Le bilan avec l'ID ${assessmentId} n'existe pas`);
+      }
+
       const response = await supabase.functions.invoke('generate-conclusions', {
         body: { assessmentId, conclusionType: type }
       });
