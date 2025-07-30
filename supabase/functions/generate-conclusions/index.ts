@@ -142,40 +142,45 @@ serve(async (req) => {
     const years = Math.floor(ageInMonths / 12);
     const months = ageInMonths % 12;
 
-    // Generate conclusions for each theme with more detailed context
+    // Generate conclusions for each theme with detailed concatenation
     const themeConclusions = [];
-    
     for (const [themeId, themeData] of Object.entries(themeGroups) as [string, any][]) {
-      console.log(`Generating conclusion for theme: ${themeData.name}`);
+      console.log(`Generating conclusion for theme: ${themeData.name} with ${themeData.results.length} results`);
       
-      // Create a comprehensive prompt with all theme results
-      const themeResultsText = themeData.results.map((r: any) => {
-        let resultText = `- ${r.itemName} (${r.itemCode})`;
-        if (r.subtheme) resultText += ` [${r.subtheme}]`;
-        resultText += `: Score brut ${r.rawScore}`;
-        if (r.unit) resultText += ` ${r.unit}`;
-        if (r.percentile) resultText += `, Percentile ${r.percentile}`;
-        if (r.standardScore) resultText += `, Score standard ${r.standardScore}`;
-        if (r.notes) resultText += ` - Notes: ${r.notes}`;
-        return resultText;
-      }).join('\n');
+      // Concatenate all results for this theme into a single coherent text
+      const allResultsText = themeData.results
+        .map((r: any) => {
+          let line = `• ${r.itemName} (${r.itemCode})`;
+          if (r.subtheme) line += ` [Sous-thème: ${r.subtheme}]`;
+          line += `\n  - Score brut: ${r.rawScore}`;
+          if (r.unit) line += ` ${r.unit}`;
+          if (r.percentile !== null && r.percentile !== undefined) line += `\n  - Percentile: ${r.percentile}`;
+          if (r.standardScore !== null && r.standardScore !== undefined) line += `\n  - Score standard: ${r.standardScore}`;
+          if (r.notes && r.notes.trim()) line += `\n  - Observations: ${r.notes.trim()}`;
+          return line;
+        })
+        .join('\n\n');
 
-      const prompt = `Tu es un psychomotricien expert. Génère une conclusion clinique professionnelle pour le thème "${themeData.name}" d'un bilan psychomoteur.
+      const fullPrompt = `Tu es un psychomotricien expert. Génère une conclusion clinique pour le thème "${themeData.name}".
 
-Patient: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
+PATIENT: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
 
-RÉSULTATS COMPLETS pour le thème "${themeData.name}":
-${themeResultsText}
+THÈME ÉVALUÉ: ${themeData.name}
+NOMBRE DE TESTS: ${themeData.results.length}
 
-CONSIGNES pour la conclusion:
-1. Analyse globale des résultats de ce thème (${themeData.results.length} tests évalués)
-2. Identifie les points forts et les difficultés spécifiques
-3. Interprète les scores en tenant compte de l'âge et des normes
-4. Formule une conclusion clinique structurée de 100-150 mots
-5. Reste factuel et professionnel
+RÉSULTATS DÉTAILLÉS:
+${allResultsText}
 
-Génère une conclusion clinique qui synthétise tous ces résultats pour ce thème spécifique.`;
+MISSION: Rédige une conclusion clinique professionnelle de 120-180 mots qui:
+- Synthétise l'ensemble des résultats de ce thème
+- Identifie les forces et difficultés observées
+- Propose une interprétation clinique appropriée
+- Utilise un langage professionnel adapté à un rapport psychomoteur
 
+Conclusion pour ${themeData.name}:`;
+
+      console.log('Sending prompt to OpenAI:', fullPrompt.substring(0, 200) + '...');
+      
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -189,10 +194,10 @@ Génère une conclusion clinique qui synthétise tous ces résultats pour ce th�
               role: 'system', 
               content: 'Tu es un psychomotricien expert spécialisé dans la rédaction de bilans psychomoteurs. Tes conclusions sont toujours professionnelles, structurées et basées sur les données cliniques.' 
             },
-            { role: 'user', content: prompt }
+            { role: 'user', content: fullPrompt }
           ],
           temperature: 0.3,
-          max_tokens: 300
+          max_tokens: 350
         }),
       });
 
