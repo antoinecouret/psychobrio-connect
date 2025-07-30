@@ -406,18 +406,12 @@ serve(async (req) => {
     </div>
 
     <div class="section">
-        <h2 class="section-title">ANALYSE PAR THÈME</h2>
+        <h2 class="section-title">RÉSULTATS PAR THÈME</h2>
         
         ${sortedThemes.map((theme: any) => {
-          const themeConclusion = themeConclusions?.find(tc => tc.catalog_themes?.name === theme.name);
-          
           return `
           <div class="theme-section">
               <h3 class="theme-title">${theme.name}</h3>
-              
-              ${themeConclusion ? `
-              <div class="conclusion-text">${themeConclusion.text}</div>
-              ` : ''}
               
               <table class="results-table">
                   <thead>
@@ -451,13 +445,6 @@ serve(async (req) => {
                             <td>${result.standardScore || 'N/A'}</td>
                             <td class="notes">${notesText}</td>
                         </tr>
-                        ${notesText !== '-' ? `
-                        <tr style="background: #f8f9fa;">
-                            <td colspan="5" style="padding: 8px 12px; font-style: italic; color: #495057; border-bottom: 1px solid #dee2e6;">
-                                <strong>Notes :</strong> ${notesText}
-                            </td>
-                        </tr>
-                        ` : ''}
                         `;
                       }).join('')}
                   </tbody>
