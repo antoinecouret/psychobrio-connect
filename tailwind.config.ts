@@ -61,7 +61,28 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Theme colors
+				'theme-0': 'hsl(var(--theme-color-0))',
+				'theme-0-bg': 'hsl(var(--theme-color-0-bg))',
+				'theme-1': 'hsl(var(--theme-color-1))',
+				'theme-1-bg': 'hsl(var(--theme-color-1-bg))',
+				'theme-2': 'hsl(var(--theme-color-2))',
+				'theme-2-bg': 'hsl(var(--theme-color-2-bg))',
+				'theme-3': 'hsl(var(--theme-color-3))',
+				'theme-3-bg': 'hsl(var(--theme-color-3-bg))',
+				'theme-4': 'hsl(var(--theme-color-4))',
+				'theme-4-bg': 'hsl(var(--theme-color-4-bg))',
+				'theme-5': 'hsl(var(--theme-color-5))',
+				'theme-5-bg': 'hsl(var(--theme-color-5-bg))',
+				'theme-6': 'hsl(var(--theme-color-6))',
+				'theme-6-bg': 'hsl(var(--theme-color-6-bg))',
+				'theme-7': 'hsl(var(--theme-color-7))',
+				'theme-7-bg': 'hsl(var(--theme-color-7-bg))',
+				'theme-8': 'hsl(var(--theme-color-8))',
+				'theme-8-bg': 'hsl(var(--theme-color-8-bg))',
+				'theme-9': 'hsl(var(--theme-color-9))',
+				'theme-9-bg': 'hsl(var(--theme-color-9-bg))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
