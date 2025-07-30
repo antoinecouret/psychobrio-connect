@@ -61,9 +61,6 @@ export default function AssessmentEntry() {
             birth_date,
             dossier_number,
             sex
-          ),
-          profiles (
-            name
           )
         `)
         .eq('id', id)
@@ -83,9 +80,9 @@ export default function AssessmentEntry() {
         .from('catalog_items')
         .select(`
           *,
-          catalog_subthemes (
+          catalog_subthemes!fk_catalog_items_subtheme (
             name,
-            catalog_themes (
+            catalog_themes!fk_catalog_subthemes_theme (
               name
             )
           )
