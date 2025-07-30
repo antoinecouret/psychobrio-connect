@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ const statusLabels = {
 
 const Assessments = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const { data: assessments, isLoading } = useQuery({
     queryKey: ['assessments'],
@@ -117,12 +119,19 @@ const Assessments = () => {
                       )}
                     </div>
                     <div className="space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate(`/assessments/${assessment.id}/entry`)}
+                      >
                         Voir le bilan
                       </Button>
-                      {assessment.status === 'DRAFT' && (
-                        <Button size="sm">
-                          Continuer la saisie
+                      {(assessment.status === 'DRAFT' || assessment.status === 'READY_FOR_REVIEW') && (
+                        <Button 
+                          size="sm"
+                          onClick={() => navigate(`/assessments/${assessment.id}/entry`)}
+                        >
+                          {assessment.status === 'DRAFT' ? 'Continuer la saisie' : 'Modifier'}
                         </Button>
                       )}
                       {assessment.status === 'SIGNED' && (

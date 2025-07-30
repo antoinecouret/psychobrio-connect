@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Patients from "./pages/Patients";
 import Assessments from "./pages/Assessments";
+import AssessmentEntry from "./pages/AssessmentEntry";
 import Admin from "./pages/Admin";
 import ParentPortal from "./pages/ParentPortal";
 import NotFound from "./pages/NotFound";
@@ -51,6 +52,14 @@ const App = () => (
               } 
             />
             <Route 
+              path="/assessments/:id/entry" 
+              element={
+                <ProtectedRoute requiredRoles={['PSY', 'ADMIN_PSY']}>
+                  <AssessmentEntry />
+                </ProtectedRoute>
+              } 
+            />
+            <Route
               path="/admin" 
               element={
                 <ProtectedRoute requiredRoles={['ADMIN_PSY']}>
