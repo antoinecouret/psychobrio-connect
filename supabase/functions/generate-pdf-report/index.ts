@@ -358,45 +358,8 @@ serve(async (req) => {
               <h3 class="theme-title">${theme.name}</h3>
               
               ${themeConclusion ? `
-              <div class="conclusion-text" style="margin-bottom: 20px;">${themeConclusion.text}</div>
-              ` : ''}
-              
-              <table class="results-table">
-                  <thead>
-                      <tr>
-                          <th>Test</th>
-                          <th>Score Brut</th>
-                          <th>Percentile</th>
-                          <th>Score Standard</th>
-                          <th>Observations</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      ${theme.results.map((result: any) => {
-                        let scoreClass = '';
-                        if (result.percentile) {
-                          if (result.percentile >= 75) scoreClass = 'score-good';
-                          else if (result.percentile >= 25) scoreClass = 'score-concern';
-                          else scoreClass = 'score-poor';
-                        }
-                        
-                        const notesText = result.notes && result.notes.trim() !== '' ? result.notes : '-';
-                        
-                        return `
-                        <tr>
-                            <td>
-                                <strong>${result.itemName}</strong> (${result.itemCode})
-                                ${result.subtheme ? `<br><span class="subtheme">${result.subtheme}</span>` : ''}
-                            </td>
-                            <td>${result.rawScore}${result.unit || ''}</td>
-                            <td class="${scoreClass}">${result.percentile || 'N/A'}</td>
-                            <td>${result.standardScore || 'N/A'}</td>
-                            <td class="notes">${notesText}</td>
-                        </tr>
-                        `;
-                      }).join('')}
-                  </tbody>
-              </table>
+              <div class="conclusion-text">${themeConclusion.text}</div>
+              ` : '<p style="color: #6c757d; font-style: italic;">Aucune conclusion disponible pour ce thème.</p>'}
           </div>
           `;
         }).join('')}
