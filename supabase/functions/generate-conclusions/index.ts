@@ -80,7 +80,7 @@ serve(async (req) => {
           description,
           unit,
           direction,
-          catalog_subthemes (
+          catalog_subthemes!catalog_items_subtheme_id_fkey (
             name,
             catalog_themes (
               id,
