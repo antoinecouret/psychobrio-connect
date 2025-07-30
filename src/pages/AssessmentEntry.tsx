@@ -552,10 +552,7 @@ export default function AssessmentEntry() {
         return (
           <Card 
             key={themeName} 
-            style={{
-              borderLeft: `6px solid hsl(var(--theme-color-${colorIndex}))`,
-              background: `hsl(var(--theme-color-${colorIndex}-bg))`
-            }}
+            className={`theme-border-${colorIndex}`}
           >
             <CardHeader>
               <CardTitle className="text-xl">{themeName}</CardTitle>
