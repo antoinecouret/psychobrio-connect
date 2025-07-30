@@ -60,10 +60,8 @@ serve(async (req) => {
 
     console.log('Assessment found:', assessment.id);
 
-    // Fetch assessment item results separately with explicit filtering
+    // Fetch assessment item results with minimal joins to avoid ambiguity
     console.log('Fetching item results for assessment:', assessmentId);
-    console.log('Assessment ID type:', typeof assessmentId);
-    
     const { data: itemResults, error: resultsError } = await supabaseClient
       .from('assessment_item_results')
       .select(`
@@ -73,21 +71,7 @@ serve(async (req) => {
         raw_score,
         percentile,
         standard_score,
-        notes,
-        catalog_items (
-          name,
-          code,
-          description,
-          unit,
-          direction,
-          catalog_subthemes!catalog_items_subtheme_id_fkey (
-            name,
-            catalog_themes (
-              id,
-              name
-            )
-          )
-        )
+        notes
       `)
       .eq('assessment_id', assessmentId);
 
@@ -97,36 +81,102 @@ serve(async (req) => {
     }
 
     console.log('Found', itemResults?.length || 0, 'item results for assessment', assessmentId);
-    console.log('Sample result:', itemResults?.[0] ? JSON.stringify(itemResults[0], null, 2) : 'No results');
 
     if (!itemResults || itemResults.length === 0) {
       throw new Error(`Aucun résultat trouvé pour le bilan ${assessmentId}`);
     }
 
-    // Group results by theme more systematically with detailed logging
+    // Get all unique item IDs
+    const itemIds = [...new Set(itemResults.map(r => r.item_id))];
+    console.log('Unique item IDs:', itemIds);
+
+    // Fetch catalog items separately
+    const { data: catalogItems, error: catalogError } = await supabaseClient
+      .from('catalog_items')
+      .select(`
+        id,
+        name,
+        code,
+        description,
+        unit,
+        direction,
+        subtheme_id
+      `)
+      .in('id', itemIds);
+
+    if (catalogError) {
+      console.error('Catalog items error:', catalogError);
+      throw new Error(`Erreur lors de la récupération des items du catalogue: ${catalogError.message}`);
+    }
+
+    // Get all unique subtheme IDs
+    const subthemeIds = [...new Set(catalogItems?.map(c => c.subtheme_id) || [])];
+    console.log('Unique subtheme IDs:', subthemeIds);
+
+    // Fetch subthemes separately
+    const { data: subthemes, error: subthemeError } = await supabaseClient
+      .from('catalog_subthemes')
+      .select(`
+        id,
+        name,
+        theme_id
+      `)
+      .in('id', subthemeIds);
+
+    if (subthemeError) {
+      console.error('Subthemes error:', subthemeError);
+      throw new Error(`Erreur lors de la récupération des sous-thèmes: ${subthemeError.message}`);
+    }
+
+    // Get all unique theme IDs
+    const themeIds = [...new Set(subthemes?.map(s => s.theme_id) || [])];
+    console.log('Unique theme IDs:', themeIds);
+
+    // Fetch themes separately
+    const { data: themes, error: themeError } = await supabaseClient
+      .from('catalog_themes')
+      .select(`
+        id,
+        name
+      `)
+      .in('id', themeIds);
+
+    if (themeError) {
+      console.error('Themes error:', themeError);
+      throw new Error(`Erreur lors de la récupération des thèmes: ${themeError.message}`);
+    }
+
+    console.log('Found themes:', themes?.length || 0);
+    console.log('Found subthemes:', subthemes?.length || 0);
+    console.log('Found catalog items:', catalogItems?.length || 0);
+
+    // Create lookup maps for easier access
+    const catalogItemsMap = new Map(catalogItems?.map(item => [item.id, item]) || []);
+    const subthemesMap = new Map(subthemes?.map(sub => [sub.id, sub]) || []);
+    const themesMap = new Map(themes?.map(theme => [theme.id, theme]) || []);
+
+    // Group results by theme using the separate data
     console.log('Starting to group results by theme...');
-    console.log('Raw itemResults:', JSON.stringify(itemResults, null, 2));
-    
     const themeGroups: Record<string, any> = {};
     
     itemResults.forEach((result, index) => {
-      console.log(`Processing result ${index + 1}:`, JSON.stringify(result, null, 2));
+      console.log(`Processing result ${index + 1}:`, result.item_id);
       
-      const catalogItem = result.catalog_items;
+      const catalogItem = catalogItemsMap.get(result.item_id);
       if (!catalogItem) {
-        console.warn(`Result ${index + 1} has no catalog_items:`, result);
+        console.warn(`Result ${index + 1} has no catalog item for ID ${result.item_id}`);
         return;
       }
       
-      const subtheme = catalogItem.catalog_subthemes;
+      const subtheme = subthemesMap.get(catalogItem.subtheme_id);
       if (!subtheme) {
-        console.warn(`Result ${index + 1} has no catalog_subthemes:`, catalogItem);
+        console.warn(`Result ${index + 1} has no subtheme for ID ${catalogItem.subtheme_id}`);
         return;
       }
       
-      const theme = subtheme.catalog_themes;
+      const theme = themesMap.get(subtheme.theme_id);
       if (!theme) {
-        console.warn(`Result ${index + 1} has no catalog_themes:`, subtheme);
+        console.warn(`Result ${index + 1} has no theme for ID ${subtheme.theme_id}`);
         return;
       }
       
