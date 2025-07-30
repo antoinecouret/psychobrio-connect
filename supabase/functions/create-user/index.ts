@@ -92,7 +92,7 @@ serve(async (req) => {
         name,
         email: authData.user.email,
         phone: phone || null,
-        role,
+        role: role as 'ADMIN_PSY' | 'PSY' | 'PARENT' | 'SUPERADMIN_TECH',
       }, {
         onConflict: 'id'
       });
