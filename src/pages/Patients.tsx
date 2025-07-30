@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import CreatePatientDialog from '@/components/patients/CreatePatientDialog';
 import CreateAssessmentDialog from '@/components/assessments/CreateAssessmentDialog';
 
 const Patients = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const { data: patients, isLoading } = useQuery({
     queryKey: ['patients'],
@@ -102,7 +104,11 @@ const Patients = () => {
                       Créé le {new Date(patient.created_at).toLocaleDateString('fr-FR')}
                     </div>
                     <div className="space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate(`/assessments?patient=${patient.id}`)}
+                      >
                         Voir le dossier
                       </Button>
                       <CreateAssessmentDialog 
