@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Search, FileText } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import CreateAssessmentDialog from '@/components/assessments/CreateAssessmentDialog';
 
 const statusLabels = {
   DRAFT: { label: 'Brouillon', variant: 'secondary' as const },
@@ -47,10 +48,7 @@ const Assessments = () => {
             Créer et gérer les bilans d'évaluation
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau bilan
-        </Button>
+        <CreateAssessmentDialog />
       </div>
 
       <Card className="mb-6">
@@ -83,10 +81,14 @@ const Assessments = () => {
                 <p className="text-muted-foreground mb-4">
                   {searchTerm ? 'Aucun bilan trouvé.' : 'Aucun bilan créé.'}
                 </p>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Créer le premier bilan
-                </Button>
+                <CreateAssessmentDialog 
+                  trigger={
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Créer le premier bilan
+                    </Button>
+                  }
+                />
               </CardContent>
             </Card>
           ) : (

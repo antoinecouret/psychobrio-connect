@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import CreatePatientDialog from '@/components/patients/CreatePatientDialog';
+import CreateAssessmentDialog from '@/components/assessments/CreateAssessmentDialog';
 
 const Patients = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,10 +38,7 @@ const Patients = () => {
             Gérer les dossiers patients et représentants légaux
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau patient
-        </Button>
+        <CreatePatientDialog />
       </div>
 
       <Card className="mb-6">
@@ -71,10 +70,14 @@ const Patients = () => {
                 <p className="text-muted-foreground">
                   {searchTerm ? 'Aucun patient trouvé.' : 'Aucun patient enregistré.'}
                 </p>
-                <Button className="mt-4">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Créer le premier patient
-                </Button>
+                <CreatePatientDialog 
+                  trigger={
+                    <Button className="mt-4">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Créer le premier patient
+                    </Button>
+                  }
+                />
               </CardContent>
             </Card>
           ) : (
@@ -102,9 +105,14 @@ const Patients = () => {
                       <Button variant="outline" size="sm">
                         Voir le dossier
                       </Button>
-                      <Button size="sm">
-                        Nouveau bilan
-                      </Button>
+                      <CreateAssessmentDialog 
+                        preselectedPatientId={patient.id}
+                        trigger={
+                          <Button size="sm">
+                            Nouveau bilan
+                          </Button>
+                        }
+                      />
                     </div>
                   </div>
                 </CardContent>

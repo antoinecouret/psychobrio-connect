@@ -12,6 +12,7 @@ import {
   BookOpen,
   Clipboard
 } from 'lucide-react';
+import CreateUserDialog from '@/components/admin/CreateUserDialog';
 
 const Admin = () => {
   return (
@@ -70,7 +71,7 @@ const Admin = () => {
                 </Card>
               </div>
               <div className="mt-4 space-x-2">
-                <Button>Nouvel utilisateur</Button>
+                <CreateUserDialog />
                 <Button variant="outline">Gérer les rôles</Button>
                 <Button variant="outline">Configuration 2FA</Button>
               </div>
