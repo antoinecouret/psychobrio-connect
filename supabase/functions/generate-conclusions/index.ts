@@ -226,6 +226,8 @@ serve(async (req) => {
     // If specific theme requested, prepare the embedding for that theme
     if (themeId) {
       console.log('Preparing embedding for specific theme:', themeId);
+      console.log('Available theme groups:', Object.keys(themeGroups));
+      console.log('Theme groups details:', JSON.stringify(themeGroups, null, 2));
       
       const themeData = themeGroups[themeId];
       if (!themeData) {
