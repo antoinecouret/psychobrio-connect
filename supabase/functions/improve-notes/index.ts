@@ -9,11 +9,15 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Request method:', req.method);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log('API Key exists:', !!openAIApiKey);
+  
   if (!openAIApiKey) {
     return new Response(
       JSON.stringify({ 
@@ -27,11 +31,13 @@ serve(async (req) => {
   }
 
   try {
-    const { text, itemName, itemCode } = await req.json();
-    console.log('Request received:', { text: text?.length, itemName, itemCode });
+    const requestBody = await req.json();
+    console.log('Request body received:', JSON.stringify(requestBody));
+    
+    const { text, itemName, itemCode } = requestBody;
 
     if (!text || !itemName) {
-      console.log('Missing required fields:', { hasText: !!text, hasItemName: !!itemName });
+      console.log('Missing required fields');
       return new Response(
         JSON.stringify({ error: 'Text and item name are required' }),
         {
@@ -40,10 +46,6 @@ serve(async (req) => {
         }
       );
     }
-
-    console.log('Making OpenAI API call...');
-    console.log('API Key present:', !!openAIApiKey);
-    console.log('API Key first 10 chars:', openAIApiKey?.substring(0, 10));
 
     const prompt = `Tu es un psychomotricien expérimenté. Je vais te donner des notes d'observation pour un item d'évaluation psychomotrice.
 
@@ -59,6 +61,8 @@ Améliore ces notes en :
 
 Réponds uniquement avec le texte amélioré, sans introduction ni explication.`;
 
+    console.log('Making OpenAI request...');
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -66,7 +70,7 @@ Réponds uniquement avec le texte amélioré, sans introduction ni explication.`
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-mini-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
@@ -80,23 +84,20 @@ Réponds uniquement avec le texte amélioré, sans introduction ni explication.`
     });
 
     console.log('OpenAI response status:', response.status);
-    console.log('OpenAI response ok:', response.ok);
+    console.log('OpenAI response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
+      const errorText = await response.text();
+      console.error('OpenAI API error response:', errorText);
       
-      let errorMessage = 'Failed to improve text with AI';
-      let statusCode = 500;
+      let errorMessage = 'Erreur lors de l\'appel à l\'API OpenAI';
       
       try {
-        const errorData = JSON.parse(error);
+        const errorData = JSON.parse(errorText);
         if (errorData.error?.code === 'insufficient_quota') {
           errorMessage = 'Quota OpenAI dépassé. Veuillez vérifier votre abonnement OpenAI.';
-          statusCode = 429;
         } else if (errorData.error?.code === 'invalid_api_key') {
           errorMessage = 'Clé API OpenAI invalide. Veuillez vérifier votre configuration.';
-          statusCode = 401;
         } else if (errorData.error?.message) {
           errorMessage = errorData.error.message;
         }
@@ -105,18 +106,29 @@ Réponds uniquement avec le texte amélioré, sans introduction ni explication.`
       }
       
       return new Response(
-        JSON.stringify({ 
-          error: errorMessage
-        }),
+        JSON.stringify({ error: errorMessage }),
         {
-          status: statusCode,
+          status: response.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
 
     const data = await response.json();
-    const improvedText = data.choices[0].message.content;
+    console.log('OpenAI response data:', JSON.stringify(data));
+    
+    const improvedText = data.choices?.[0]?.message?.content;
+
+    if (!improvedText) {
+      console.error('No improved text in response');
+      return new Response(
+        JSON.stringify({ error: 'Aucun texte amélioré reçu de l\'IA' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
 
     return new Response(
       JSON.stringify({ improvedText }),
@@ -125,10 +137,10 @@ Réponds uniquement avec le texte amélioré, sans introduction ni explication.`
       }
     );
   } catch (error) {
-    console.error('Error in improve-notes function:', error);
+    console.error('Unexpected error in improve-notes function:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'An unexpected error occurred' 
+        error: 'Une erreur inattendue s\'est produite: ' + error.message 
       }),
       {
         status: 500,
