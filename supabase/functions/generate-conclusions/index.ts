@@ -94,9 +94,15 @@ serve(async (req) => {
       throw new Error('Aucun résultat trouvé pour ce bilan');
     }
 
-    // Group results by theme
+    // Group results by theme more systematically
+    console.log('Grouping results by theme...');
     const themeGroups = itemResults.reduce((acc: any, result: any) => {
-      const theme = result.catalog_items.catalog_subthemes.catalog_themes;
+      const theme = result.catalog_items?.catalog_subthemes?.catalog_themes;
+      if (!theme) {
+        console.warn('Missing theme for result:', result.id);
+        return acc;
+      }
+      
       const themeId = theme.id;
       const themeName = theme.name;
       
@@ -116,11 +122,17 @@ serve(async (req) => {
         standardScore: result.standard_score,
         notes: result.notes,
         direction: result.catalog_items.direction,
-        unit: result.catalog_items.unit
+        unit: result.catalog_items.unit,
+        subtheme: result.catalog_items.catalog_subthemes.name
       });
       
       return acc;
     }, {});
+
+    console.log('Theme groups created:', Object.keys(themeGroups).length);
+    for (const [themeId, themeData] of Object.entries(themeGroups) as [string, any][]) {
+      console.log(`Theme ${themeData.name}: ${themeData.results.length} results`);
+    }
 
     // Calculate patient age
     const birthDate = new Date(assessment.patients.birth_date);
@@ -130,26 +142,39 @@ serve(async (req) => {
     const years = Math.floor(ageInMonths / 12);
     const months = ageInMonths % 12;
 
-    // Generate conclusions for each theme
+    // Generate conclusions for each theme with more detailed context
     const themeConclusions = [];
     
     for (const [themeId, themeData] of Object.entries(themeGroups) as [string, any][]) {
+      console.log(`Generating conclusion for theme: ${themeData.name}`);
+      
+      // Create a comprehensive prompt with all theme results
+      const themeResultsText = themeData.results.map((r: any) => {
+        let resultText = `- ${r.itemName} (${r.itemCode})`;
+        if (r.subtheme) resultText += ` [${r.subtheme}]`;
+        resultText += `: Score brut ${r.rawScore}`;
+        if (r.unit) resultText += ` ${r.unit}`;
+        if (r.percentile) resultText += `, Percentile ${r.percentile}`;
+        if (r.standardScore) resultText += `, Score standard ${r.standardScore}`;
+        if (r.notes) resultText += ` - Notes: ${r.notes}`;
+        return resultText;
+      }).join('\n');
+
       const prompt = `Tu es un psychomotricien expert. Génère une conclusion clinique professionnelle pour le thème "${themeData.name}" d'un bilan psychomoteur.
 
 Patient: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
 
-Résultats pour le thème "${themeData.name}":
-${themeData.results.map((r: any) => 
-  `- ${r.itemName} (${r.itemCode}): Score brut ${r.rawScore}${r.unit ? ` ${r.unit}` : ''}${r.percentile ? `, Percentile ${r.percentile}` : ''}${r.standardScore ? `, Score standard ${r.standardScore}` : ''}${r.notes ? ` - Notes: ${r.notes}` : ''}`
-).join('\n')}
+RÉSULTATS COMPLETS pour le thème "${themeData.name}":
+${themeResultsText}
 
-Génère une conclusion clinique structurée et professionnelle de 100-150 mots qui:
-1. Analyse les résultats dans leur ensemble pour ce thème
-2. Identifie les points forts et les difficultés
-3. Donne une interprétation clinique appropriée
-4. Reste objective et factuelle
+CONSIGNES pour la conclusion:
+1. Analyse globale des résultats de ce thème (${themeData.results.length} tests évalués)
+2. Identifie les points forts et les difficultés spécifiques
+3. Interprète les scores en tenant compte de l'âge et des normes
+4. Formule une conclusion clinique structurée de 100-150 mots
+5. Reste factuel et professionnel
 
-Utilise un ton professionnel et clinique approprié pour un rapport psychomoteur.`;
+Génère une conclusion clinique qui synthétise tous ces résultats pour ce thème spécifique.`;
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
