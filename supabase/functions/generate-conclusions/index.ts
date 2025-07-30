@@ -20,7 +20,7 @@ serve(async (req) => {
       throw new Error('Clé API OpenAI non configurée');
     }
 
-    const { assessmentId, themeId } = await req.json();
+    const { assessmentId, themeId, conclusionType } = await req.json();
     
     console.log('Received request for assessment:', assessmentId, 'theme:', themeId || 'ALL');
     
@@ -317,8 +317,112 @@ Conclusion pour ${themeData.name}:`;
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    // If no specific theme requested, generate for all themes (not implemented in this version)
-    throw new Error('Génération pour tous les thèmes non implémentée. Utilisez la génération par thème.');
+    
+    // If general conclusion type requested
+    if (conclusionType) {
+      console.log('Generating assessment conclusion type:', conclusionType);
+      
+      // Create summary of all theme results
+      const allThemesData = Object.values(themeGroups).map((theme: any) => {
+        const resultsText = theme.results
+          .map((r: any) => `• ${r.itemName}: ${r.rawScore}${r.unit || ''} (P${r.percentile || 'N/A'})`)
+          .join('\n  ');
+        return `**${theme.name}:**\n  ${resultsText}`;
+      }).join('\n\n');
+
+      let prompt = '';
+      
+      if (conclusionType === 'synthesis') {
+        prompt = `Tu es un psychomotricien expert. Rédige une synthèse générale du profil psychomoteur.
+
+PATIENT: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
+
+RÉSULTATS PAR THÈME:
+${allThemesData}
+
+MISSION: Rédige une synthèse générale de 150-200 mots qui:
+- Présente une vue d'ensemble du profil psychomoteur
+- Identifie les domaines de force et de difficulté
+- Propose une interprétation clinique globale
+- Utilise un vocabulaire professionnel adapté
+
+Synthèse:`;
+      
+      } else if (conclusionType === 'objectives') {
+        prompt = `Tu es un psychomotricien expert. Définis les objectifs thérapeutiques prioritaires.
+
+PATIENT: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
+
+RÉSULTATS PAR THÈME:
+${allThemesData}
+
+MISSION: Propose 3-5 objectifs thérapeutiques prioritaires et réalisables qui:
+- Ciblent les difficultés identifiées
+- Sont adaptés à l'âge et au profil de l'enfant
+- Suivent une progression logique
+- Sont mesurables et atteignables
+
+Objectifs thérapeutiques:`;
+      
+      } else if (conclusionType === 'recommendations') {
+        prompt = `Tu es un psychomotricien expert. Formule des recommandations pratiques.
+
+PATIENT: ${assessment.patients.first_name} ${assessment.patients.last_name}, ${years} ans et ${months} mois, sexe ${assessment.patients.sex}
+
+RÉSULTATS PAR THÈME:
+${allThemesData}
+
+MISSION: Propose des recommandations concrètes de 120-150 mots pour:
+- Les parents à la maison
+- L'équipe éducative à l'école
+- Le suivi thérapeutique
+- Les adaptations nécessaires
+
+Recommandations:`;
+      }
+
+      console.log('Calling OpenAI for assessment conclusion:', conclusionType);
+
+      // Call OpenAI API
+      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'Tu es un psychomotricien expert spécialisé dans la rédaction de bilans cliniques. Tes conclusions sont toujours professionnelles, précises et adaptées au profil des patients.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 600
+        }),
+      });
+
+      if (!openAIResponse.ok) {
+        const errorData = await openAIResponse.text();
+        console.error('OpenAI API error:', errorData);
+        throw new Error(`Erreur API OpenAI: ${openAIResponse.status}`);
+      }
+
+      const aiData = await openAIResponse.json();
+      const generatedConclusion = aiData.choices[0].message.content;
+
+      console.log('Generated assessment conclusion:', conclusionType);
+
+      return new Response(JSON.stringify({ 
+        conclusion: generatedConclusion,
+        conclusionType,
+        isEmbedding: false
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // If no specific request
+    throw new Error('Paramètre manquant: themeId ou conclusionType requis.');
 
   } catch (error) {
     console.error('Error in generate-conclusions function:', error);

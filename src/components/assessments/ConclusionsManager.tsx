@@ -149,6 +149,46 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
     }
   });
 
+  // Generate assessment conclusion mutation
+  const generateAssessmentConclusionMutation = useMutation({
+    mutationFn: async (type: 'synthesis' | 'objectives' | 'recommendations') => {
+      const response = await supabase.functions.invoke('generate-conclusions', {
+        body: { assessmentId, conclusionType: type }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erreur lors de la génération de la conclusion');
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      return { ...response.data, type };
+    },
+    onSuccess: (data) => {
+      if (data.conclusion) {
+        setEditedAssessmentConclusion(prev => ({
+          ...prev,
+          [data.type]: data.conclusion,
+          llm_model: 'gpt-4o-mini'
+        }));
+      }
+
+      toast({
+        title: "Succès",
+        description: "La conclusion a été générée avec l'IA.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Save conclusions mutation
   const saveConclusionsMutation = useMutation({
     mutationFn: async () => {
@@ -223,6 +263,10 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
 
   const handleGenerateThemeConclusion = (themeId: string) => {
     generateThemeConclusionMutation.mutate(themeId);
+  };
+
+  const handleGenerateAssessmentConclusion = (type: 'synthesis' | 'objectives' | 'recommendations') => {
+    generateAssessmentConclusionMutation.mutate(type);
   };
 
   const handleSaveConclusions = () => {
@@ -332,9 +376,20 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="synthesis" className="text-base font-medium">
-              Synthèse générale
-            </Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="synthesis" className="text-base font-medium">
+                Synthèse générale
+              </Label>
+              <Button
+                onClick={() => handleGenerateAssessmentConclusion('synthesis')}
+                disabled={generateAssessmentConclusionMutation.isPending}
+                size="sm"
+                variant="outline"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {generateAssessmentConclusionMutation.isPending ? "Génération..." : "Générer par IA"}
+              </Button>
+            </div>
             <Textarea
               id="synthesis"
               value={editedAssessmentConclusion.synthesis}
@@ -348,9 +403,20 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
           <Separator />
 
           <div>
-            <Label htmlFor="objectives" className="text-base font-medium">
-              Objectifs thérapeutiques
-            </Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="objectives" className="text-base font-medium">
+                Objectifs thérapeutiques
+              </Label>
+              <Button
+                onClick={() => handleGenerateAssessmentConclusion('objectives')}
+                disabled={generateAssessmentConclusionMutation.isPending}
+                size="sm"
+                variant="outline"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {generateAssessmentConclusionMutation.isPending ? "Génération..." : "Générer par IA"}
+              </Button>
+            </div>
             <Textarea
               id="objectives"
               value={editedAssessmentConclusion.objectives}
@@ -364,9 +430,20 @@ const ConclusionsManager: React.FC<ConclusionsManagerProps> = ({ assessmentId })
           <Separator />
 
           <div>
-            <Label htmlFor="recommendations" className="text-base font-medium">
-              Recommandations
-            </Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="recommendations" className="text-base font-medium">
+                Recommandations
+              </Label>
+              <Button
+                onClick={() => handleGenerateAssessmentConclusion('recommendations')}
+                disabled={generateAssessmentConclusionMutation.isPending}
+                size="sm"
+                variant="outline"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {generateAssessmentConclusionMutation.isPending ? "Génération..." : "Générer par IA"}
+              </Button>
+            </div>
             <Textarea
               id="recommendations"
               value={editedAssessmentConclusion.recommendations}
