@@ -239,6 +239,13 @@ export type Database = {
             referencedRelation: "catalog_subthemes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_catalog_items_subtheme"
+            columns: ["subtheme_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_subthemes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       catalog_subthemes: {
@@ -266,6 +273,13 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "catalog_subthemes_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_themes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_catalog_subthemes_theme"
             columns: ["theme_id"]
             isOneToOne: false
             referencedRelation: "catalog_themes"
