@@ -31,6 +31,10 @@ interface CatalogItem {
   description?: string;
   unit?: string;
   direction: 'HIGHER_IS_BETTER' | 'LOWER_IS_BETTER';
+  has_raw_score: boolean;
+  has_percentile: boolean;
+  has_standard_score: boolean;
+  has_notes: boolean;
   catalog_subthemes: {
     name: string;
     catalog_themes: {
@@ -587,65 +591,73 @@ export default function AssessmentEntry() {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                          <div>
-                            <Label htmlFor={`raw-${item.id}`}>Score brut *</Label>
-                            <Input
-                              id={`raw-${item.id}`}
-                              type="number"
-                              step="0.01"
-                              value={results[item.id]?.raw_score || ''}
-                              onChange={(e) => handleScoreChange(item.id, 'raw_score', e.target.value)}
-                              placeholder="0"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor={`percentile-${item.id}`}>Percentile</Label>
-                            <Input
-                              id={`percentile-${item.id}`}
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={results[item.id]?.percentile || ''}
-                              onChange={(e) => handleScoreChange(item.id, 'percentile', e.target.value)}
-                              placeholder="0-100"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor={`standard-${item.id}`}>Score standard</Label>
-                            <Input
-                              id={`standard-${item.id}`}
-                              type="number"
-                              step="0.01"
-                              value={results[item.id]?.standard_score || ''}
-                              onChange={(e) => handleScoreChange(item.id, 'standard_score', e.target.value)}
-                              placeholder="Score standard"
-                            />
-                          </div>
+                          {item.has_raw_score && (
+                            <div>
+                              <Label htmlFor={`raw-${item.id}`}>Score brut *</Label>
+                              <Input
+                                id={`raw-${item.id}`}
+                                type="number"
+                                step="0.01"
+                                value={results[item.id]?.raw_score || ''}
+                                onChange={(e) => handleScoreChange(item.id, 'raw_score', e.target.value)}
+                                placeholder="0"
+                              />
+                            </div>
+                          )}
+                          {item.has_percentile && (
+                            <div>
+                              <Label htmlFor={`percentile-${item.id}`}>Percentile</Label>
+                              <Input
+                                id={`percentile-${item.id}`}
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={results[item.id]?.percentile || ''}
+                                onChange={(e) => handleScoreChange(item.id, 'percentile', e.target.value)}
+                                placeholder="0-100"
+                              />
+                            </div>
+                          )}
+                          {item.has_standard_score && (
+                            <div>
+                              <Label htmlFor={`standard-${item.id}`}>Score standard</Label>
+                              <Input
+                                id={`standard-${item.id}`}
+                                type="number"
+                                step="0.01"
+                                value={results[item.id]?.standard_score || ''}
+                                onChange={(e) => handleScoreChange(item.id, 'standard_score', e.target.value)}
+                                placeholder="Score standard"
+                              />
+                            </div>
+                          )}
                         </div>
                         
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <Label htmlFor={`notes-${item.id}`}>Notes et observations</Label>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleImproveNotes(item.id, item.name, item.code)}
-                              disabled={improvingNotes[item.id] || !results[item.id]?.notes?.trim()}
-                              className="h-7 px-2 text-xs"
-                            >
-                              <Sparkles className="h-3 w-3 mr-1" />
-                              {improvingNotes[item.id] ? 'Amélioration...' : 'Améliorer avec IA'}
-                            </Button>
+                        {item.has_notes && (
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <Label htmlFor={`notes-${item.id}`}>Notes et observations</Label>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleImproveNotes(item.id, item.name, item.code)}
+                                disabled={improvingNotes[item.id] || !results[item.id]?.notes?.trim()}
+                                className="h-7 px-2 text-xs"
+                              >
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                {improvingNotes[item.id] ? 'Amélioration...' : 'Améliorer avec IA'}
+                              </Button>
+                            </div>
+                            <Textarea
+                              id={`notes-${item.id}`}
+                              value={results[item.id]?.notes || ''}
+                              onChange={(e) => handleScoreChange(item.id, 'notes', e.target.value)}
+                              placeholder="Observations sur cet item..."
+                              rows={2}
+                            />
                           </div>
-                          <Textarea
-                            id={`notes-${item.id}`}
-                            value={results[item.id]?.notes || ''}
-                            onChange={(e) => handleScoreChange(item.id, 'notes', e.target.value)}
-                            placeholder="Observations sur cet item..."
-                            rows={2}
-                          />
-                        </div>
+                        )}
                       </div>
                     ))}
                   </div>

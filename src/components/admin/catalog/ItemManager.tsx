@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,10 @@ interface Item {
   subtheme_id: string;
   version: string;
   created_at: string;
+  has_raw_score: boolean;
+  has_percentile: boolean;
+  has_standard_score: boolean;
+  has_notes: boolean;
   catalog_subthemes?: Subtheme;
 }
 
@@ -45,6 +50,10 @@ type ItemFormData = {
   unit: string;
   direction: 'HIGHER_IS_BETTER' | 'LOWER_IS_BETTER';
   subtheme_id: string;
+  has_raw_score: boolean;
+  has_percentile: boolean;
+  has_standard_score: boolean;
+  has_notes: boolean;
 };
 
 const ItemManager = () => {
@@ -57,6 +66,10 @@ const ItemManager = () => {
     unit: '',
     direction: 'HIGHER_IS_BETTER',
     subtheme_id: '',
+    has_raw_score: true,
+    has_percentile: true,
+    has_standard_score: true,
+    has_notes: true,
   });
   const queryClient = useQueryClient();
 
@@ -117,6 +130,10 @@ const ItemManager = () => {
           unit: formData.unit || null,
           direction: formData.direction,
           subtheme_id: formData.subtheme_id,
+          has_raw_score: formData.has_raw_score,
+          has_percentile: formData.has_percentile,
+          has_standard_score: formData.has_standard_score,
+          has_notes: formData.has_notes,
         }])
         .select()
         .single();
@@ -154,6 +171,10 @@ const ItemManager = () => {
           unit: formData.unit || null,
           direction: formData.direction,
           subtheme_id: formData.subtheme_id,
+          has_raw_score: formData.has_raw_score,
+          has_percentile: formData.has_percentile,
+          has_standard_score: formData.has_standard_score,
+          has_notes: formData.has_notes,
         })
         .eq('id', id)
         .select()
@@ -214,6 +235,10 @@ const ItemManager = () => {
       unit: '',
       direction: 'HIGHER_IS_BETTER',
       subtheme_id: '',
+      has_raw_score: true,
+      has_percentile: true,
+      has_standard_score: true,
+      has_notes: true,
     });
   };
 
@@ -244,6 +269,10 @@ const ItemManager = () => {
       unit: item.unit || '',
       direction: item.direction,
       subtheme_id: item.subtheme_id,
+      has_raw_score: item.has_raw_score,
+      has_percentile: item.has_percentile,
+      has_standard_score: item.has_standard_score,
+      has_notes: item.has_notes,
     });
   };
 
@@ -359,6 +388,45 @@ const ItemManager = () => {
                     </Select>
                   </div>
                 </div>
+                
+                <div>
+                  <Label>Champs disponibles</Label>
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="has-raw-score"
+                        checked={itemData.has_raw_score}
+                        onCheckedChange={(checked) => setItemData({...itemData, has_raw_score: !!checked})}
+                      />
+                      <Label htmlFor="has-raw-score">Score brut</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="has-percentile"
+                        checked={itemData.has_percentile}
+                        onCheckedChange={(checked) => setItemData({...itemData, has_percentile: !!checked})}
+                      />
+                      <Label htmlFor="has-percentile">Percentile</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="has-standard-score"
+                        checked={itemData.has_standard_score}
+                        onCheckedChange={(checked) => setItemData({...itemData, has_standard_score: !!checked})}
+                      />
+                      <Label htmlFor="has-standard-score">Score standard</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="has-notes"
+                        checked={itemData.has_notes}
+                        onCheckedChange={(checked) => setItemData({...itemData, has_notes: !!checked})}
+                      />
+                      <Label htmlFor="has-notes">Notes et observations</Label>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Annuler
@@ -517,6 +585,45 @@ const ItemManager = () => {
                   </Select>
                 </div>
               </div>
+              
+              <div>
+                <Label>Champs disponibles</Label>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="edit-has-raw-score"
+                      checked={itemData.has_raw_score}
+                      onCheckedChange={(checked) => setItemData({...itemData, has_raw_score: !!checked})}
+                    />
+                    <Label htmlFor="edit-has-raw-score">Score brut</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="edit-has-percentile"
+                      checked={itemData.has_percentile}
+                      onCheckedChange={(checked) => setItemData({...itemData, has_percentile: !!checked})}
+                    />
+                    <Label htmlFor="edit-has-percentile">Percentile</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="edit-has-standard-score"
+                      checked={itemData.has_standard_score}
+                      onCheckedChange={(checked) => setItemData({...itemData, has_standard_score: !!checked})}
+                    />
+                    <Label htmlFor="edit-has-standard-score">Score standard</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="edit-has-notes"
+                      checked={itemData.has_notes}
+                      onCheckedChange={(checked) => setItemData({...itemData, has_notes: !!checked})}
+                    />
+                    <Label htmlFor="edit-has-notes">Notes et observations</Label>
+                  </div>
+                </div>
+              </div>
+              
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={closeEditDialog}>
                   Annuler
